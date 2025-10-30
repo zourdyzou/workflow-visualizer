@@ -1,6 +1,7 @@
 "use client"
 import { Handle, Position } from "@xyflow/react"
 import type React from "react"
+import { memo } from "react"
 
 import { FunctionSquare, X, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -16,7 +17,7 @@ interface WorkerTaskNodeProps {
   id: string
 }
 
-export function WorkerTaskNode({ data, id }: WorkerTaskNodeProps) {
+export const WorkerTaskNode = memo(function WorkerTaskNode({ data, id }: WorkerTaskNodeProps) {
   const { removeTask, showConfirmation } = useWorkflow()
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -81,4 +82,4 @@ export function WorkerTaskNode({ data, id }: WorkerTaskNodeProps) {
       <Handle type="source" position={Position.Bottom} className="!bg-gray-400" />
     </div>
   )
-}
+})

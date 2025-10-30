@@ -1,6 +1,7 @@
 "use client"
 import { Handle, Position } from "@xyflow/react"
 import type React from "react"
+import { memo } from "react"
 
 import { Globe, LinkIcon, X, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -19,7 +20,7 @@ interface HttpTaskNodeProps {
   id: string
 }
 
-export function HttpTaskNode({ data, id }: HttpTaskNodeProps) {
+export const HttpTaskNode = memo(function HttpTaskNode({ data, id }: HttpTaskNodeProps) {
   const { removeTask, showConfirmation } = useWorkflow()
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -101,4 +102,4 @@ export function HttpTaskNode({ data, id }: HttpTaskNodeProps) {
       <Handle type="source" position={Position.Bottom} className="!bg-gray-400" />
     </div>
   )
-}
+})
