@@ -10,14 +10,10 @@ interface WorkerTaskNodeProps {
     taskReferenceName: string
     taskType: string
   }
+  id: string
 }
 
-export function WorkerTaskNode({ data }: WorkerTaskNodeProps) {
-  const handleAddTask = (taskType: string) => {
-    console.log("[v0] Adding task after worker node:", taskType)
-    // TODO: Implement task addition logic
-  }
-
+export function WorkerTaskNode({ data, id }: WorkerTaskNodeProps) {
   return (
     <div className="relative">
       <Handle type="target" position={Position.Top} className="!bg-gray-400" />
@@ -47,7 +43,7 @@ export function WorkerTaskNode({ data }: WorkerTaskNodeProps) {
         </div>
 
         <div className="absolute -bottom-4 left-1/2 z-10 -translate-x-1/2">
-          <TaskSelectionPopover onSelectTask={handleAddTask}>
+          <TaskSelectionPopover nodeId={id}>
             <Button
               size="icon"
               variant="ghost"

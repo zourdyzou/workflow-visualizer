@@ -13,14 +13,10 @@ interface HttpTaskNodeProps {
     method?: string
     url?: string
   }
+  id: string
 }
 
-export function HttpTaskNode({ data }: HttpTaskNodeProps) {
-  const handleAddTask = (taskType: string) => {
-    console.log("[v0] Adding task after HTTP node:", taskType)
-    // TODO: Implement task addition logic
-  }
-
+export function HttpTaskNode({ data, id }: HttpTaskNodeProps) {
   return (
     <div className="relative">
       <Handle type="target" position={Position.Top} className="!bg-gray-400" />
@@ -67,7 +63,7 @@ export function HttpTaskNode({ data }: HttpTaskNodeProps) {
         )}
 
         <div className="absolute -bottom-4 left-1/2 z-10 -translate-x-1/2">
-          <TaskSelectionPopover onSelectTask={handleAddTask}>
+          <TaskSelectionPopover nodeId={id}>
             <Button
               size="icon"
               variant="ghost"

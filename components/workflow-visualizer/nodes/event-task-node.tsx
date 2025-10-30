@@ -11,14 +11,10 @@ interface EventTaskNodeProps {
     taskType: string
     eventName?: string
   }
+  id: string
 }
 
-export function EventTaskNode({ data }: EventTaskNodeProps) {
-  const handleAddTask = (taskType: string) => {
-    console.log("[v0] Adding task after event node:", taskType)
-    // TODO: Implement task addition logic
-  }
-
+export function EventTaskNode({ data, id }: EventTaskNodeProps) {
   return (
     <div className="relative">
       <Handle type="target" position={Position.Top} className="!bg-gray-400" />
@@ -58,7 +54,7 @@ export function EventTaskNode({ data }: EventTaskNodeProps) {
         )}
 
         <div className="absolute -bottom-4 left-1/2 z-10 -translate-x-1/2">
-          <TaskSelectionPopover onSelectTask={handleAddTask}>
+          <TaskSelectionPopover nodeId={id}>
             <Button
               size="icon"
               variant="ghost"
