@@ -119,15 +119,30 @@ export function WorkflowManagementVisualizer({
         nodeData.url = ""
       }
 
+      const VERTICAL_SPACING = 200
+
       const newNode = {
         id: newNodeId,
         type: reactFlowNodeType,
         position: {
           x: afterNode.position.x,
-          y: afterNode.position.y + 150,
+          y: afterNode.position.y + VERTICAL_SPACING,
         },
         data: nodeData,
       }
+
+      const updatedNodes = nodes.map((node) => {
+        if (node.position.y > afterNode.position.y) {
+          return {
+            ...node,
+            position: {
+              ...node.position,
+              y: node.position.y + VERTICAL_SPACING,
+            },
+          }
+        }
+        return node
+      })
 
       const updatedEdges = edges.map((edge) => {
         if (edge.source === afterNodeId) {
@@ -156,12 +171,62 @@ export function WorkflowManagementVisualizer({
         },
       }
 
-      setNodes((nds) => [...nds, newNode])
+      setNodes((nds) => [...updatedNodes, newNode])
       setEdges((eds) => [...updatedEdges, newEdge])
+
+      nodePositionsRef.current[newNodeId] = newNode.position
+      updatedNodes.forEach((node) => {
+        nodePositionsRef.current[node.id] = node.position
+      })
 
       console.log("[v0] Node added successfully:", newNode)
     },
     [nodes, edges, setNodes, setEdges],
+  )
+
+  const removeNode = useCallback(
+    (nodeId: string) => {
+      console.log("[v0] Removing node:", nodeId)
+
+      // Remove the node
+      setNodes((nds) => nds.filter((n) => n.id !== nodeId))
+
+      // Find edges connected to this node
+      const incomingEdge = edges.find((e) => e.target === nodeId)
+      const outgoingEdge = edges.find((e) => e.source === nodeId)
+
+      // Reconnect the workflow by creating a new edge from source to target
+      if (incomingEdge && outgoingEdge) {
+        const newEdge = {
+          id: `edge-${incomingEdge.source}-${outgoingEdge.target}`,
+          source: incomingEdge.source,
+          target: outgoingEdge.target,
+          type: "smoothstep",
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 20,
+            height: 20,
+            color: "#94a3b8",
+          },
+          style: {
+            strokeWidth: 2,
+            stroke: "#94a3b8",
+          },
+        }
+
+        // Remove old edges and add new connecting edge
+        setEdges((eds) => [...eds.filter((e) => e.source !== nodeId && e.target !== nodeId), newEdge])
+      } else {
+        // Just remove edges connected to this node
+        setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId))
+      }
+
+      // Remove from position ref
+      delete nodePositionsRef.current[nodeId]
+
+      console.log("[v0] Node removed successfully")
+    },
+    [edges, setNodes, setEdges],
   )
 
   return (
@@ -195,6 +260,7 @@ export function WorkflowManagementVisualizer({
         }}
         onInit={(reactFlowInstance) => {
           ;(window as any).__addNodeAfter = addNodeAfter
+          ;(window as any).__removeNode = removeNode
         }}
       >
         <Background color="#64748b" gap={16} size={1.5} variant="dots" />

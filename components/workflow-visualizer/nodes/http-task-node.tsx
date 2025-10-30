@@ -1,9 +1,12 @@
 "use client"
 import { Handle, Position } from "@xyflow/react"
+import type React from "react"
+
 import { Globe, LinkIcon, X, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TaskSelectionPopover } from "../task-selection-popover"
+import { useWorkflow } from "../context/workflow-context"
 
 interface HttpTaskNodeProps {
   data: {
@@ -17,6 +20,25 @@ interface HttpTaskNodeProps {
 }
 
 export function HttpTaskNode({ data, id }: HttpTaskNodeProps) {
+  const { removeTask, showConfirmation } = useWorkflow()
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    showConfirmation({
+      title: "Delete Task",
+      description: `Are you sure you want to delete "${data.label}"? This action cannot be undone.`,
+      onConfirm: () => {
+        removeTask(data.taskReferenceName)
+        // Also remove the node from React Flow
+        if (typeof window !== "undefined" && (window as any).__removeNode) {
+          ;(window as any).__removeNode(id)
+        }
+      },
+      confirmText: "Delete",
+      cancelText: "Cancel",
+    })
+  }
+
   return (
     <div className="relative">
       <Handle type="target" position={Position.Top} className="!bg-gray-400" />
@@ -26,6 +48,7 @@ export function HttpTaskNode({ data, id }: HttpTaskNodeProps) {
         <Button
           size="icon"
           variant="ghost"
+          onClick={handleDelete}
           className="absolute -right-2 -top-2 h-6 w-6 rounded-full border-2 border-red-400 bg-white p-0 opacity-0 transition-opacity hover:bg-red-50 group-hover:opacity-100"
         >
           <X className="h-3 w-3 text-red-500" />

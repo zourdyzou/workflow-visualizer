@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react"
 import type { ConductorWorkflow, ConductorTask } from "../types/conductor-types"
+import { WorkflowConfirmationDialog } from "./workflow-confirmation-dialog"
 
 interface WorkflowContextType {
   workflow: ConductorWorkflow
@@ -11,6 +12,15 @@ interface WorkflowContextType {
   addTask: (task: ConductorTask, afterTaskRef?: string) => void
   removeTask: (taskReferenceName: string) => void
   exportWorkflow: () => ConductorWorkflow
+  showConfirmation: (config: ConfirmationConfig) => void
+}
+
+interface ConfirmationConfig {
+  title: string
+  description: string
+  onConfirm: () => void
+  confirmText?: string
+  cancelText?: string
 }
 
 const WorkflowContext = createContext<WorkflowContextType | undefined>(undefined)
@@ -23,6 +33,7 @@ export function WorkflowProvider({
   initialWorkflow: ConductorWorkflow
 }) {
   const [workflow, setWorkflow] = useState<ConductorWorkflow>(initialWorkflow)
+  const [confirmationConfig, setConfirmationConfig] = useState<ConfirmationConfig | null>(null)
 
   const updateTask = useCallback((taskReferenceName: string, updates: Partial<ConductorTask>) => {
     setWorkflow((prev) => ({
@@ -70,6 +81,21 @@ export function WorkflowProvider({
     return workflow
   }, [workflow])
 
+  const showConfirmation = useCallback((config: ConfirmationConfig) => {
+    setConfirmationConfig(config)
+  }, [])
+
+  const handleConfirm = useCallback(() => {
+    if (confirmationConfig) {
+      confirmationConfig.onConfirm()
+      setConfirmationConfig(null)
+    }
+  }, [confirmationConfig])
+
+  const handleCancel = useCallback(() => {
+    setConfirmationConfig(null)
+  }, [])
+
   return (
     <WorkflowContext.Provider
       value={{
@@ -80,9 +106,19 @@ export function WorkflowProvider({
         addTask,
         removeTask,
         exportWorkflow,
+        showConfirmation,
       }}
     >
       {children}
+      <WorkflowConfirmationDialog
+        open={!!confirmationConfig}
+        title={confirmationConfig?.title || ""}
+        description={confirmationConfig?.description || ""}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+        confirmText={confirmationConfig?.confirmText}
+        cancelText={confirmationConfig?.cancelText}
+      />
     </WorkflowContext.Provider>
   )
 }

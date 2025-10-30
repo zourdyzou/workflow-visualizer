@@ -1,7 +1,7 @@
 import type { Node, Edge } from "@xyflow/react"
 import type { ConductorWorkflow, ConductorTask } from "../types/conductor-types"
 
-const VERTICAL_SPACING = 150
+const VERTICAL_SPACING = 200
 const HORIZONTAL_SPACING = 300
 
 export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
