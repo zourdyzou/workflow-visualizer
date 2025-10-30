@@ -5,9 +5,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { X, Pencil, Plus, Trash2 } from "lucide-react"
+import { Pencil, Plus, Trash2, ChevronsRight } from "lucide-react"
 import { useState, useEffect } from "react"
 import type { ConductorWorkflow } from "./types/conductor-types"
 import { useWorkflow } from "./context/workflow-context"
@@ -29,6 +28,30 @@ export function WorkflowFormPanel({
   onSave,
   onCancel,
 }: WorkflowFormPanelProps) {
+  const [configTab, setConfigTab] = useState<"workflow" | "task">("workflow")
+  const { workflow: contextWorkflow } = useWorkflow()
+
+  const firstTask = contextWorkflow?.tasks?.[0]
+  const displayTask =
+    selectedNode ||
+    (firstTask
+      ? {
+          id: firstTask.taskReferenceName,
+          data: {
+            task: firstTask,
+            label: firstTask.name,
+            taskReferenceName: firstTask.taskReferenceName,
+            taskType: firstTask.type,
+          },
+        }
+      : null)
+
+  useEffect(() => {
+    if (selectedNode) {
+      setConfigTab("task")
+    }
+  }, [selectedNode])
+
   if (!isOpen) {
     return (
       <div className="w-12 border-l bg-gray-50 flex items-start justify-center pt-4">
@@ -41,20 +64,48 @@ export function WorkflowFormPanel({
 
   return (
     <div className="w-[480px] border-l bg-white flex flex-col">
-      {/* Header */}
-      <div className="border-b px-6 py-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{selectedNode ? "Task Configuration" : "Workflow Configuration"}</h2>
-        <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="h-8 w-8">
-          <X className="h-4 w-4" />
-        </Button>
+      <div className="border-b bg-white">
+        <div className="flex items-center h-12 px-6 gap-6">
+          <button
+            onClick={() => onOpenChange(false)}
+            className="text-gray-400 hover:text-gray-600 transition-colors -ml-1 cursor-pointer"
+          >
+            <ChevronsRight className="h-5 w-5" />
+          </button>
+
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setConfigTab("workflow")}
+              className={`text-sm font-medium px-3 py-2 border-b-2 transition-colors cursor-pointer ${
+                configTab === "workflow"
+                  ? "text-gray-900 bg-gray-100 border-sky-400"
+                  : "text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              Workflow
+            </button>
+            <button
+              onClick={() => setConfigTab("task")}
+              className={`text-sm font-medium px-3 py-2 border-b-2 transition-colors cursor-pointer ${
+                configTab === "task"
+                  ? "text-gray-900 bg-gray-100 border-sky-400"
+                  : "text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              Task
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-6 py-4">
-        {selectedNode ? (
-          <TaskForm key={selectedNode.id} task={selectedNode.data} taskReferenceName={selectedNode.id} />
-        ) : (
+        {configTab === "workflow" ? (
           <WorkflowForm workflow={workflow} />
+        ) : displayTask ? (
+          <TaskForm key={displayTask.id} task={displayTask.data} taskReferenceName={displayTask.id} />
+        ) : (
+          <div className="text-center text-gray-500 py-8">No tasks available</div>
         )}
       </div>
 
@@ -87,11 +138,6 @@ function WorkflowForm({ workflow }: { workflow: ConductorWorkflow }) {
       <div className="space-y-2">
         <Label htmlFor="workflow-version">Version</Label>
         <Input id="workflow-version" type="number" defaultValue={workflow.version} />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="owner-email">Owner Email</Label>
-        <Input id="owner-email" type="email" defaultValue={workflow.ownerEmail} />
       </div>
 
       <div className="space-y-2">
@@ -144,94 +190,13 @@ function TaskForm({ task, taskReferenceName }: { task: any; taskReferenceName: s
   const taskType = task.taskType || "SIMPLE"
 
   return (
-    <Tabs defaultValue="definition" className="w-full">
-      <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="definition">Definition</TabsTrigger>
-        <TabsTrigger value="settings">Settings</TabsTrigger>
-      </TabsList>
-
-      <TabsContent value="definition" className="space-y-4 mt-4">
-        {taskType === "SIMPLE" && <SimpleTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
-        {taskType === "HTTP" && <HttpTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
-        {taskType === "EVENT" && <EventTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
-        {taskType === "START_WORKFLOW" && (
-          <StartWorkflowTaskForm task={fullTask} taskReferenceName={taskReferenceName} />
-        )}
-        {taskType === "WORKER_TASK" && <SimpleTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
-      </TabsContent>
-
-      <TabsContent value="settings" className="space-y-4 mt-4">
-        <SettingsForm task={fullTask} taskReferenceName={taskReferenceName} />
-      </TabsContent>
-    </Tabs>
-  )
-}
-
-function SettingsForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
-  const { updateTask } = useWorkflow()
-  const [timeout, setTimeout] = useState(task.timeoutSeconds || "")
-  const [retryCount, setRetryCount] = useState(task.retryCount || "")
-  const [retryDelay, setRetryDelay] = useState(task.retryDelaySeconds || "")
-  const [optional, setOptional] = useState(task.optional || false)
-
-  // Use useEffect to update the task in the context when form values change
-  useEffect(() => {
-    updateTask(taskReferenceName, {
-      timeoutSeconds: timeout ? Number.parseInt(timeout, 10) : undefined,
-      retryCount: retryCount ? Number.parseInt(retryCount, 10) : undefined,
-      retryDelaySeconds: retryDelay ? Number.parseInt(retryDelay, 10) : undefined,
-      optional: optional,
-    })
-  }, [timeout, retryCount, retryDelay, optional, taskReferenceName, updateTask])
-
-  return (
-    <>
-      <div className="space-y-2">
-        <Label htmlFor="timeout">Timeout (seconds)</Label>
-        <Input
-          id="timeout"
-          type="number"
-          placeholder="3600"
-          value={timeout}
-          onChange={(e) => setTimeout(e.target.value)}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="retry-count">Retry Count</Label>
-        <Input
-          id="retry-count"
-          type="number"
-          placeholder="3"
-          value={retryCount}
-          onChange={(e) => setRetryCount(e.target.value)}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="retry-delay">Retry Delay (seconds)</Label>
-        <Input
-          id="retry-delay"
-          type="number"
-          placeholder="60"
-          value={retryDelay}
-          onChange={(e) => setRetryDelay(e.target.value)}
-        />
-      </div>
-
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="optional"
-          className="h-4 w-4"
-          checked={optional}
-          onChange={(e) => setOptional(e.target.checked)}
-        />
-        <Label htmlFor="optional" className="font-normal">
-          Optional Task
-        </Label>
-      </div>
-    </>
+    <div className="space-y-4">
+      {taskType === "SIMPLE" && <SimpleTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
+      {taskType === "HTTP" && <HttpTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
+      {taskType === "EVENT" && <EventTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
+      {taskType === "START_WORKFLOW" && <StartWorkflowTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
+      {taskType === "WORKER_TASK" && <SimpleTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
+    </div>
   )
 }
 
@@ -537,70 +502,6 @@ function HttpTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNam
       <div className="space-y-2">
         <Label htmlFor="max-attempts">Maximum Attempts</Label>
         <Input id="max-attempts" type="number" placeholder="3" className="w-full" />
-      </div>
-
-      <div className="space-y-3">
-        <div className="text-sm font-medium text-gray-700">Other headers:</div>
-
-        <div className="border border-dashed border-gray-300 rounded-md p-4">
-          {otherHeaders.length === 0 ? (
-            <div className="flex items-center justify-between">
-              <Button onClick={addHeader} className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Plus className="h-4 w-4 mr-2" />
-                Add header
-              </Button>
-              <span className="text-sm text-gray-500">(empty)</span>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {otherHeaders.map((header, index) => (
-                <div key={index} className="grid grid-cols-[1fr_2fr_auto] gap-3 items-end">
-                  <div className="space-y-2">
-                    <Label htmlFor={`header-key-${index}`}>Header</Label>
-                    <Input
-                      id={`header-key-${index}`}
-                      value={header.key}
-                      onChange={(e) => {
-                        const newHeaders = [...otherHeaders]
-                        newHeaders[index].key = e.target.value
-                        setOtherHeaders(newHeaders)
-                      }}
-                      className="w-full"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor={`header-value-${index}`}>Value</Label>
-                    <Input
-                      id={`header-value-${index}`}
-                      value={header.value}
-                      onChange={(e) => {
-                        const newHeaders = [...otherHeaders]
-                        newHeaders[index].value = e.target.value
-                        setOtherHeaders(newHeaders)
-                      }}
-                      placeholder="New value"
-                      className="w-full"
-                    />
-                  </div>
-
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeHeader(index)}
-                    className="h-10 w-10 text-gray-500 hover:text-gray-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-              <Button onClick={addHeader} className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Plus className="h-4 w-4 mr-2" />
-                Add header
-              </Button>
-            </div>
-          )}
-        </div>
       </div>
 
       <div className="space-y-3">

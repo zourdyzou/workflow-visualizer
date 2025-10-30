@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useCallback, useEffect } from "react"
+import { useMemo, useCallback, useEffect, useRef } from "react"
 import { ReactFlow, Background, Controls, useNodesState, useEdgesState, MarkerType } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 import { SimpleTaskNode } from "./nodes/simple-task-node"
@@ -41,6 +41,8 @@ export function WorkflowManagementVisualizer({
 
   const activeWorkflow = contextWorkflow || workflow
 
+  const nodePositionsRef = useRef<Record<string, { x: number; y: number }>>({})
+
   const { nodes: initialNodes, edges: initialEdges } = useMemo(
     () => parseWorkflowToReactFlow(activeWorkflow),
     [activeWorkflow],
@@ -50,8 +52,24 @@ export function WorkflowManagementVisualizer({
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
 
   useEffect(() => {
+    nodes.forEach((node) => {
+      nodePositionsRef.current[node.id] = node.position
+    })
+  }, [nodes])
+
+  useEffect(() => {
     const { nodes: updatedNodes, edges: updatedEdges } = parseWorkflowToReactFlow(activeWorkflow)
-    setNodes(updatedNodes)
+
+    // Merge updated node data with preserved positions
+    const mergedNodes = updatedNodes.map((updatedNode) => {
+      const existingPosition = nodePositionsRef.current[updatedNode.id]
+      return {
+        ...updatedNode,
+        position: existingPosition || updatedNode.position,
+      }
+    })
+
+    setNodes(mergedNodes)
     setEdges(updatedEdges)
   }, [activeWorkflow, setNodes, setEdges])
 
