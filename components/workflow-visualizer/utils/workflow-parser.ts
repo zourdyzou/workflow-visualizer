@@ -40,7 +40,11 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
         label: task.name,
         taskReferenceName: task.taskReferenceName,
         taskType: task.type,
-        status: "completed",
+        // Pass the entire task object for form access
+        task: task,
+        // Additional fields for display
+        method: (task.inputParameters as any)?.http_request?.method,
+        url: (task.inputParameters as any)?.http_request?.uri,
         collapsed: task.type === "DYNAMIC_FORK" || task.type === "FORK_JOIN_DYNAMIC",
       },
     }
@@ -130,24 +134,28 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
 }
 
 function getNodeType(taskType: string): string {
-  const systemTaskTypes = [
-    "SUB_WORKFLOW",
-    "FORK_JOIN",
-    "FORK_JOIN_DYNAMIC",
-    "DYNAMIC_FORK",
-    "JOIN",
-    "DYNAMIC",
-    "TERMINATE",
-    "HTTP",
-  ]
-
-  if (taskType === "DECISION" || taskType === "SWITCH") {
-    return "decision"
+  // Map specific task types to their node components
+  switch (taskType) {
+    case "SIMPLE":
+      return "workerTask"
+    case "HTTP":
+      return "httpTask"
+    case "EVENT":
+      return "eventTask"
+    case "START_WORKFLOW":
+    case "SUB_WORKFLOW":
+      return "startWorkflowTask"
+    case "DECISION":
+    case "SWITCH":
+      return "decision"
+    case "FORK_JOIN":
+    case "FORK_JOIN_DYNAMIC":
+    case "DYNAMIC_FORK":
+    case "JOIN":
+    case "DYNAMIC":
+    case "TERMINATE":
+      return "systemTask"
+    default:
+      return "workerTask" // Default to worker task for unknown types
   }
-
-  if (systemTaskTypes.includes(taskType)) {
-    return "systemTask"
-  }
-
-  return "simpleTask"
 }

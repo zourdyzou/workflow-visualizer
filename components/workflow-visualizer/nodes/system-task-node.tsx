@@ -1,6 +1,6 @@
 "use client"
 import { Handle, Position } from "@xyflow/react"
-import { CheckCircle2, Workflow, GitFork, GitMerge } from "lucide-react"
+import { Workflow, GitFork, GitMerge } from "lucide-react"
 
 interface SystemTaskNodeProps {
   data: {
@@ -42,10 +42,6 @@ export function SystemTaskNode({ data }: SystemTaskNodeProps) {
         {data.collapsed && (
           <button className="mt-2 rounded bg-white px-3 py-1 text-xs font-medium text-gray-900">Collapsed</button>
         )}
-
-        <div className="absolute -right-2 -top-2">
-          <CheckCircle2 className="h-5 w-5 fill-green-500 text-white" />
-        </div>
       </div>
 
       <Handle type="source" position={Position.Bottom} className="!bg-gray-400" />

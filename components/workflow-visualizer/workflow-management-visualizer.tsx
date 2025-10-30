@@ -7,6 +7,10 @@ import { SimpleTaskNode } from "./nodes/simple-task-node"
 import { SystemTaskNode } from "./nodes/system-task-node"
 import { DecisionNode } from "./nodes/decision-node"
 import { StartEndNode } from "./nodes/start-end-node"
+import { WorkerTaskNode } from "./nodes/worker-task-node"
+import { HttpTaskNode } from "./nodes/http-task-node"
+import { EventTaskNode } from "./nodes/event-task-node"
+import { StartWorkflowNode } from "./nodes/start-workflow-node"
 import { parseWorkflowToReactFlow } from "./utils/workflow-parser"
 import type { ConductorWorkflow } from "./types/conductor-types"
 
@@ -15,14 +19,23 @@ const nodeTypes = {
   systemTask: SystemTaskNode,
   decision: DecisionNode,
   startEnd: StartEndNode,
+  workerTask: WorkerTaskNode,
+  httpTask: HttpTaskNode,
+  eventTask: EventTaskNode,
+  startWorkflowTask: StartWorkflowNode,
 }
 
 interface WorkflowManagementVisualizerProps {
   workflow: ConductorWorkflow
   className?: string
+  onNodeClick?: (node: any) => void
 }
 
-export function WorkflowManagementVisualizer({ workflow, className = "" }: WorkflowManagementVisualizerProps) {
+export function WorkflowManagementVisualizer({
+  workflow,
+  className = "",
+  onNodeClick,
+}: WorkflowManagementVisualizerProps) {
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => parseWorkflowToReactFlow(workflow), [workflow])
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
@@ -35,6 +48,11 @@ export function WorkflowManagementVisualizer({ workflow, className = "" }: Workf
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onNodeClick={(event, node) => {
+          if (onNodeClick) {
+            onNodeClick(node)
+          }
+        }}
         nodeTypes={nodeTypes}
         fitView
         minZoom={0.1}
@@ -58,6 +76,14 @@ export function WorkflowManagementVisualizer({ workflow, className = "" }: Workf
         <MiniMap
           nodeColor={(node) => {
             switch (node.type) {
+              case "workerTask":
+                return "#ffffff"
+              case "httpTask":
+                return "#ffffff"
+              case "eventTask":
+                return "#ffffff"
+              case "startWorkflowTask":
+                return "#0f766e"
               case "simpleTask":
                 return "#22c55e"
               case "systemTask":
