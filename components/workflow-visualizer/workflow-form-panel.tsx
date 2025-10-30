@@ -8,8 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { X, Pencil, Plus, Trash2 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import type { ConductorWorkflow } from "./types/conductor-types"
+import { useWorkflow } from "./context/workflow-context"
 
 interface WorkflowFormPanelProps {
   workflow: ConductorWorkflow
@@ -51,7 +52,7 @@ export function WorkflowFormPanel({
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-6 py-4">
         {selectedNode ? (
-          <TaskForm key={selectedNode.id} task={selectedNode.data} />
+          <TaskForm key={selectedNode.id} task={selectedNode.data} taskReferenceName={selectedNode.id} />
         ) : (
           <WorkflowForm workflow={workflow} />
         )}
@@ -138,7 +139,7 @@ function WorkflowForm({ workflow }: { workflow: ConductorWorkflow }) {
   )
 }
 
-function TaskForm({ task }: { task: any }) {
+function TaskForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
   const fullTask = task.task || task
   const taskType = task.taskType || "SIMPLE"
 
@@ -150,41 +151,96 @@ function TaskForm({ task }: { task: any }) {
       </TabsList>
 
       <TabsContent value="definition" className="space-y-4 mt-4">
-        {taskType === "SIMPLE" && <SimpleTaskForm task={fullTask} />}
-        {taskType === "HTTP" && <HttpTaskForm task={fullTask} />}
-        {taskType === "EVENT" && <EventTaskForm task={fullTask} />}
-        {taskType === "START_WORKFLOW" && <StartWorkflowTaskForm task={fullTask} />}
+        {taskType === "SIMPLE" && <SimpleTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
+        {taskType === "HTTP" && <HttpTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
+        {taskType === "EVENT" && <EventTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
+        {taskType === "START_WORKFLOW" && (
+          <StartWorkflowTaskForm task={fullTask} taskReferenceName={taskReferenceName} />
+        )}
+        {taskType === "WORKER_TASK" && <SimpleTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
       </TabsContent>
 
       <TabsContent value="settings" className="space-y-4 mt-4">
-        <div className="space-y-2">
-          <Label htmlFor="timeout">Timeout (seconds)</Label>
-          <Input id="timeout" type="number" placeholder="3600" />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="retry-count">Retry Count</Label>
-          <Input id="retry-count" type="number" placeholder="3" />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="retry-delay">Retry Delay (seconds)</Label>
-          <Input id="retry-delay" type="number" placeholder="60" />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <input type="checkbox" id="optional" className="h-4 w-4" />
-          <Label htmlFor="optional" className="font-normal">
-            Optional Task
-          </Label>
-        </div>
+        <SettingsForm task={fullTask} taskReferenceName={taskReferenceName} />
       </TabsContent>
     </Tabs>
   )
 }
 
-function SimpleTaskForm({ task }: { task: any }) {
+function SettingsForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
+  const { updateTask } = useWorkflow()
+  const [timeout, setTimeout] = useState(task.timeoutSeconds || "")
+  const [retryCount, setRetryCount] = useState(task.retryCount || "")
+  const [retryDelay, setRetryDelay] = useState(task.retryDelaySeconds || "")
+  const [optional, setOptional] = useState(task.optional || false)
+
+  // Use useEffect to update the task in the context when form values change
+  useEffect(() => {
+    updateTask(taskReferenceName, {
+      timeoutSeconds: timeout ? Number.parseInt(timeout, 10) : undefined,
+      retryCount: retryCount ? Number.parseInt(retryCount, 10) : undefined,
+      retryDelaySeconds: retryDelay ? Number.parseInt(retryDelay, 10) : undefined,
+      optional: optional,
+    })
+  }, [timeout, retryCount, retryDelay, optional, taskReferenceName, updateTask])
+
+  return (
+    <>
+      <div className="space-y-2">
+        <Label htmlFor="timeout">Timeout (seconds)</Label>
+        <Input
+          id="timeout"
+          type="number"
+          placeholder="3600"
+          value={timeout}
+          onChange={(e) => setTimeout(e.target.value)}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="retry-count">Retry Count</Label>
+        <Input
+          id="retry-count"
+          type="number"
+          placeholder="3"
+          value={retryCount}
+          onChange={(e) => setRetryCount(e.target.value)}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="retry-delay">Retry Delay (seconds)</Label>
+        <Input
+          id="retry-delay"
+          type="number"
+          placeholder="60"
+          value={retryDelay}
+          onChange={(e) => setRetryDelay(e.target.value)}
+        />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="optional"
+          className="h-4 w-4"
+          checked={optional}
+          onChange={(e) => setOptional(e.target.checked)}
+        />
+        <Label htmlFor="optional" className="font-normal">
+          Optional Task
+        </Label>
+      </div>
+    </>
+  )
+}
+
+function SimpleTaskForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
+  const { updateTask } = useWorkflow()
   const inputParams = task.inputParameters || {}
+
+  const [taskName, setTaskName] = useState(task.name || "")
+  const [taskRef, setTaskRef] = useState(task.taskReferenceName || taskReferenceName)
   const [parameters, setParameters] = useState<Array<{ key: string; value: string; type: string }>>(
     Object.entries(inputParams).map(([key, value]) => ({
       key,
@@ -192,6 +248,36 @@ function SimpleTaskForm({ task }: { task: any }) {
       type: typeof value === "number" ? "Number" : typeof value === "boolean" ? "Boolean" : "String",
     })),
   )
+
+  useEffect(() => {
+    const newWorkflowInput = parameters.reduce(
+      (acc, { key, value, type }) => {
+        if (key) {
+          switch (type) {
+            case "Number":
+              acc[key] = Number.parseFloat(value)
+              break
+            case "Boolean":
+              acc[key] = value.toLowerCase() === "true"
+              break
+            case "Null":
+              acc[key] = null
+              break
+            default:
+              acc[key] = value
+          }
+        }
+        return acc
+      },
+      {} as Record<string, any>,
+    )
+
+    updateTask(taskReferenceName, {
+      name: taskName,
+      taskReferenceName: taskRef,
+      inputParameters: newWorkflowInput,
+    })
+  }, [taskName, taskRef, parameters, taskReferenceName, updateTask])
 
   const addParameter = () => {
     setParameters([...parameters, { key: "", value: "", type: "String" }])
@@ -205,12 +291,12 @@ function SimpleTaskForm({ task }: { task: any }) {
     <>
       <div className="space-y-2">
         <Label htmlFor="task-name">Task Name</Label>
-        <Input id="task-name" defaultValue={task.name || ""} />
+        <Input id="task-name" value={taskName} onChange={(e) => setTaskName(e.target.value)} />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="task-ref">Task Reference Name</Label>
-        <Input id="task-ref" defaultValue={task.taskReferenceName || ""} />
+        <Input id="task-ref" value={taskRef} onChange={(e) => setTaskRef(e.target.value)} />
       </div>
 
       <div className="space-y-3">
@@ -302,19 +388,73 @@ function SimpleTaskForm({ task }: { task: any }) {
   )
 }
 
-function HttpTaskForm({ task }: { task: any }) {
+function HttpTaskForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
+  const { updateTask } = useWorkflow()
   const httpRequest = task.inputParameters?.http_request || {}
-  const method = httpRequest.method || "GET"
-  const uri = httpRequest.uri || ""
+
+  const [taskName, setTaskName] = useState(task.name || "")
+  const [taskRef, setTaskRef] = useState(task.taskReferenceName || taskReferenceName)
+  const [method, setMethod] = useState(httpRequest.method || "GET")
+  const [uri, setUri] = useState(httpRequest.uri || "")
   const headers = httpRequest.headers || {}
-  const accept = headers.Accept || headers.accept || "application/json"
-  const contentType = headers["Content-Type"] || headers["content-type"] || "application/json"
+  const [accept, setAccept] = useState(headers.Accept || headers.accept || "application/json")
+  const [contentType, setContentType] = useState(
+    headers["Content-Type"] || headers["content-type"] || "application/json",
+  )
   const body = httpRequest.body || {}
-  const bodyStr = Object.keys(body).length > 0 ? JSON.stringify(body, null, 2) : "{}"
+  const [bodyStr, setBodyStr] = useState(Object.keys(body).length > 0 ? JSON.stringify(body, null, 2) : "{}")
 
   const [otherHeaders, setOtherHeaders] = useState<Array<{ key: string; value: string }>>([])
   const [bodyType, setBodyType] = useState<"json" | "parameters">("json")
   const [bodyParameters, setBodyParameters] = useState<Array<{ key: string; value: string }>>([])
+
+  useEffect(() => {
+    const httpRequestBody = bodyType === "json" ? JSON.parse(bodyStr) : {}
+    const bodyParams =
+      bodyType === "parameters"
+        ? bodyParameters.reduce((acc, { key, value }) => {
+            if (key) acc[key] = value
+            return acc
+          }, {})
+        : {}
+
+    const finalBody = bodyType === "json" ? httpRequestBody : bodyParams
+
+    const updatedHeaders = otherHeaders.reduce((acc, { key, value }) => {
+      if (key) acc[key] = value
+      return acc
+    }, {})
+
+    updateTask(taskReferenceName, {
+      name: taskName,
+      taskReferenceName: taskRef,
+      inputParameters: {
+        http_request: {
+          method: method,
+          uri: uri,
+          headers: {
+            Accept: accept,
+            "Content-Type": contentType,
+            ...updatedHeaders,
+          },
+          body: finalBody,
+        },
+      },
+    })
+  }, [
+    taskName,
+    taskRef,
+    method,
+    uri,
+    accept,
+    contentType,
+    otherHeaders,
+    bodyType,
+    bodyStr,
+    bodyParameters,
+    taskReferenceName,
+    updateTask,
+  ])
 
   const addHeader = () => {
     setOtherHeaders([...otherHeaders, { key: "", value: "" }])
@@ -337,19 +477,19 @@ function HttpTaskForm({ task }: { task: any }) {
       <div className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="task-name">Task Definition</Label>
-          <Input id="task-name" defaultValue={task.name || ""} className="w-full" />
+          <Input id="task-name" value={taskName} onChange={(e) => setTaskName(e.target.value)} className="w-full" />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="task-ref">Reference Name</Label>
-          <Input id="task-ref" defaultValue={task.taskReferenceName || ""} className="w-full" />
+          <Input id="task-ref" value={taskRef} onChange={(e) => setTaskRef(e.target.value)} className="w-full" />
         </div>
       </div>
 
       <div className="grid grid-cols-[140px_1fr] gap-4">
         <div className="space-y-2">
           <Label htmlFor="method">Method</Label>
-          <Select defaultValue={method}>
+          <Select value={method} onValueChange={setMethod}>
             <SelectTrigger id="method" className="w-full">
               <SelectValue />
             </SelectTrigger>
@@ -369,7 +509,8 @@ function HttpTaskForm({ task }: { task: any }) {
           <Label htmlFor="url">URL</Label>
           <Input
             id="url"
-            defaultValue={uri}
+            value={uri}
+            onChange={(e) => setUri(e.target.value)}
             placeholder="https://orkes-api-tester.orkesconductor.com/api"
             className="w-full"
           />
@@ -379,12 +520,17 @@ function HttpTaskForm({ task }: { task: any }) {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="accept">Accept</Label>
-          <Input id="accept" defaultValue={accept} className="w-full" />
+          <Input id="accept" value={accept} onChange={(e) => setAccept(e.target.value)} className="w-full" />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="content-type">Content-Type</Label>
-          <Input id="content-type" defaultValue={contentType} className="w-full" />
+          <Input
+            id="content-type"
+            value={contentType}
+            onChange={(e) => setContentType(e.target.value)}
+            className="w-full"
+          />
         </div>
       </div>
 
@@ -483,7 +629,13 @@ function HttpTaskForm({ task }: { task: any }) {
         {bodyType === "json" ? (
           <div className="space-y-2">
             <Label htmlFor="body-code">Code</Label>
-            <Textarea id="body-code" defaultValue={bodyStr} rows={6} className="font-mono text-sm resize-none w-full" />
+            <Textarea
+              id="body-code"
+              value={bodyStr}
+              onChange={(e) => setBodyStr(e.target.value)}
+              rows={6}
+              className="font-mono text-sm resize-none w-full"
+            />
           </div>
         ) : (
           <div className="border border-dashed border-gray-300 rounded-md p-4">
@@ -551,19 +703,57 @@ function HttpTaskForm({ task }: { task: any }) {
   )
 }
 
-function EventTaskForm({ task }: { task: any }) {
+function EventTaskForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
+  const { updateTask } = useWorkflow()
   const eventName = task.inputParameters?.eventName || ""
   const sink = task.sink || ""
   const inputParams = task.inputParameters || {}
   const [parameters, setParameters] = useState<Array<{ key: string; value: string; type: string }>>(
     Object.entries(inputParams)
-      .filter(([key]) => key !== "eventName")
+      .filter(([key]) => key !== "eventName" && key !== "eventSink")
       .map(([key, value]) => ({
         key,
         value: String(value),
         type: typeof value === "number" ? "Number" : typeof value === "boolean" ? "Boolean" : "String",
       })),
   )
+  const [currentEventName, setEventName] = useState(eventName)
+  const [currentSink, setSink] = useState(sink)
+
+  useEffect(() => {
+    const newWorkflowInput = parameters.reduce(
+      (acc, { key, value, type }) => {
+        if (key) {
+          switch (type) {
+            case "Number":
+              acc[key] = Number.parseFloat(value)
+              break
+            case "Boolean":
+              acc[key] = value.toLowerCase() === "true"
+              break
+            case "Null":
+              acc[key] = null
+              break
+            default:
+              acc[key] = value
+          }
+        }
+        return acc
+      },
+      {} as Record<string, any>,
+    )
+
+    updateTask(taskReferenceName, {
+      name: task.name,
+      taskReferenceName: task.taskReferenceName,
+      inputParameters: {
+        eventName: currentEventName,
+        eventSink: currentSink,
+        ...newWorkflowInput,
+      },
+      sink: currentSink,
+    })
+  }, [currentEventName, currentSink, parameters, taskReferenceName, updateTask, task.name, task.taskReferenceName])
 
   const addParameter = () => {
     setParameters([...parameters, { key: "", value: "", type: "String" }])
@@ -582,17 +772,27 @@ function EventTaskForm({ task }: { task: any }) {
 
       <div className="space-y-2">
         <Label htmlFor="task-ref">Task Reference Name</Label>
-        <Input id="task-ref" defaultValue={task.taskReferenceName || ""} />
+        <Input id="task-ref" defaultValue={task.taskReferenceName || taskReferenceName} />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="event-name">Event Name</Label>
-        <Input id="event-name" defaultValue={eventName} placeholder="internal_event_name" />
+        <Input
+          id="event-name"
+          value={currentEventName}
+          onChange={(e) => setEventName(e.target.value)}
+          placeholder="internal_event_name"
+        />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="event-sink">Event Sink</Label>
-        <Input id="event-sink" defaultValue={sink} placeholder="sqs:queue_name" />
+        <Input
+          id="event-sink"
+          value={currentSink}
+          onChange={(e) => setSink(e.target.value)}
+          placeholder="sqs:queue_name"
+        />
       </div>
 
       <div className="space-y-3">
@@ -684,19 +884,69 @@ function EventTaskForm({ task }: { task: any }) {
   )
 }
 
-function StartWorkflowTaskForm({ task }: { task: any }) {
+function StartWorkflowTaskForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
+  const { updateTask } = useWorkflow()
   const workflowName = task.inputParameters?.workflowName || task.subWorkflowParam?.name || ""
   const workflowVersion = task.inputParameters?.workflowVersion || task.subWorkflowParam?.version || 1
   const workflowInput = task.inputParameters?.workflowInput || task.inputParameters || {}
   const [parameters, setParameters] = useState<Array<{ key: string; value: string; type: string }>>(
     Object.entries(workflowInput)
-      .filter(([key]) => key !== "workflowName" && key !== "workflowVersion")
+      .filter(([key]) => key !== "workflowName" && key !== "workflowVersion" && key !== "workflowInput")
       .map(([key, value]) => ({
         key,
         value: String(value),
         type: typeof value === "number" ? "Number" : typeof value === "boolean" ? "Boolean" : "String",
       })),
   )
+
+  const [currentWorkflowName, setWorkflowName] = useState(workflowName)
+  const [currentWorkflowVersion, setWorkflowVersion] = useState(String(workflowVersion))
+
+  useEffect(() => {
+    const newWorkflowInput = parameters.reduce(
+      (acc, { key, value, type }) => {
+        if (key) {
+          switch (type) {
+            case "Number":
+              acc[key] = Number.parseFloat(value)
+              break
+            case "Boolean":
+              acc[key] = value.toLowerCase() === "true"
+              break
+            case "Null":
+              acc[key] = null
+              break
+            default:
+              acc[key] = value
+          }
+        }
+        return acc
+      },
+      {} as Record<string, any>,
+    )
+
+    updateTask(taskReferenceName, {
+      name: task.name,
+      taskReferenceName: task.taskReferenceName,
+      inputParameters: {
+        workflowName: currentWorkflowName,
+        workflowVersion: Number.parseInt(currentWorkflowVersion, 10),
+        workflowInput: newWorkflowInput,
+      },
+      subWorkflowParam: {
+        name: currentWorkflowName,
+        version: Number.parseInt(currentWorkflowVersion, 10),
+      },
+    })
+  }, [
+    currentWorkflowName,
+    currentWorkflowVersion,
+    parameters,
+    taskReferenceName,
+    updateTask,
+    task.name,
+    task.taskReferenceName,
+  ])
 
   const addParameter = () => {
     setParameters([...parameters, { key: "", value: "", type: "String" }])
@@ -715,17 +965,28 @@ function StartWorkflowTaskForm({ task }: { task: any }) {
 
       <div className="space-y-2">
         <Label htmlFor="task-ref">Task Reference Name</Label>
-        <Input id="task-ref" defaultValue={task.taskReferenceName || ""} />
+        <Input id="task-ref" defaultValue={task.taskReferenceName || taskReferenceName} />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="workflow-name">Workflow Name</Label>
-        <Input id="workflow-name" defaultValue={workflowName} placeholder="sub_workflow_name" />
+        <Input
+          id="workflow-name"
+          value={currentWorkflowName}
+          onChange={(e) => setWorkflowName(e.target.value)}
+          placeholder="sub_workflow_name"
+        />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="workflow-version">Workflow Version</Label>
-        <Input id="workflow-version" type="number" defaultValue={workflowVersion} placeholder="1" />
+        <Input
+          id="workflow-version"
+          type="number"
+          value={currentWorkflowVersion}
+          onChange={(e) => setWorkflowVersion(e.target.value)}
+          placeholder="1"
+        />
       </div>
 
       <div className="space-y-3">

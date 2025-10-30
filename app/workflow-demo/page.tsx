@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { WorkflowManagementVisualizer } from "@/components/workflow-visualizer/workflow-management-visualizer"
 import { WorkflowFormPanel } from "@/components/workflow-visualizer/workflow-form-panel"
+import { WorkflowProvider, useWorkflow } from "@/components/workflow-visualizer/context/workflow-context"
 import type { ConductorWorkflow } from "@/components/workflow-visualizer/types/conductor-types"
 
 const sampleWorkflow: ConductorWorkflow = {
@@ -108,16 +109,28 @@ const sampleWorkflow: ConductorWorkflow = {
   },
 }
 
-export default function WorkflowDemoPage() {
+function WorkflowDemoContent() {
   const [selectedNode, setSelectedNode] = useState<any>(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
+  const { workflow, exportWorkflow } = useWorkflow()
+
+  const handleSave = () => {
+    const conductorWorkflow = exportWorkflow()
+    console.log("[v0] Saved workflow in Conductor format:", JSON.stringify(conductorWorkflow, null, 2))
+    setIsPanelOpen(false)
+  }
+
+  const handleCancel = () => {
+    console.log("[v0] Cancelled changes")
+    setSelectedNode(null)
+    setIsPanelOpen(false)
+  }
 
   return (
     <div className="flex h-screen">
-      {/* Workflow Visualizer - takes remaining space */}
       <div className="flex-1 flex flex-col">
         <WorkflowManagementVisualizer
-          workflow={sampleWorkflow}
+          workflow={workflow}
           onNodeClick={(node) => {
             setSelectedNode(node)
             setIsPanelOpen(true)
@@ -125,21 +138,22 @@ export default function WorkflowDemoPage() {
         />
       </div>
 
-      {/* Form Panel - fixed width on the right */}
       <WorkflowFormPanel
-        workflow={sampleWorkflow}
+        workflow={workflow}
         selectedNode={selectedNode}
         isOpen={isPanelOpen}
         onOpenChange={setIsPanelOpen}
-        onSave={() => {
-          console.log("[v0] Save clicked")
-          setIsPanelOpen(false)
-        }}
-        onCancel={() => {
-          setSelectedNode(null)
-          setIsPanelOpen(false)
-        }}
+        onSave={handleSave}
+        onCancel={handleCancel}
       />
     </div>
+  )
+}
+
+export default function WorkflowDemoPage() {
+  return (
+    <WorkflowProvider initialWorkflow={sampleWorkflow}>
+      <WorkflowDemoContent />
+    </WorkflowProvider>
   )
 }

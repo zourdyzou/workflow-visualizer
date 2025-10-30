@@ -1,5 +1,5 @@
 "use client"
-import { Globe, Radio, FunctionSquare, Sparkles } from "lucide-react"
+import { Globe, FunctionSquare, Sparkles } from "lucide-react"
 import type React from "react"
 import { useState } from "react"
 
@@ -25,11 +25,6 @@ export function TaskSelectionPopover({ children, nodeId }: TaskSelectionPopoverP
       id: "HTTP",
       label: "HTTP Task",
       icon: Globe,
-    },
-    {
-      id: "EVENT",
-      label: "Publish Event",
-      icon: Radio,
     },
   ]
 
