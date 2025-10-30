@@ -1,7 +1,8 @@
 "use client"
 import { Handle, Position } from "@xyflow/react"
-import { Camera as Lambda, X } from "lucide-react"
+import { FunctionSquare, X, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { TaskSelectionPopover } from "../task-selection-popover"
 
 interface WorkerTaskNodeProps {
   data: {
@@ -12,6 +13,11 @@ interface WorkerTaskNodeProps {
 }
 
 export function WorkerTaskNode({ data }: WorkerTaskNodeProps) {
+  const handleAddTask = (taskType: string) => {
+    console.log("[v0] Adding task after worker node:", taskType)
+    // TODO: Implement task addition logic
+  }
+
   return (
     <div className="relative">
       <Handle type="target" position={Position.Top} className="!bg-gray-400" />
@@ -29,7 +35,7 @@ export function WorkerTaskNode({ data }: WorkerTaskNodeProps) {
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-1 items-start gap-3">
             <div className="mt-1">
-              <Lambda className="h-5 w-5 text-gray-700" />
+              <FunctionSquare className="h-5 w-5 text-gray-700" />
             </div>
             <div className="flex-1">
               <div className="font-semibold text-gray-900">{data.label}</div>
@@ -40,15 +46,16 @@ export function WorkerTaskNode({ data }: WorkerTaskNodeProps) {
           <span className="rounded bg-yellow-100 px-2.5 py-1 text-xs font-medium text-gray-900">{data.taskType}</span>
         </div>
 
-        {/* Add button at bottom */}
-        <div className="absolute -bottom-3 left-1/2 -translate-x-1/2">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-6 w-6 rounded-full border-2 border-gray-300 bg-white p-0 opacity-0 transition-opacity hover:bg-gray-50 group-hover:opacity-100"
-          >
-            <span className="text-lg font-semibold text-gray-600">+</span>
-          </Button>
+        <div className="absolute -bottom-4 left-1/2 z-10 -translate-x-1/2">
+          <TaskSelectionPopover onSelectTask={handleAddTask}>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 rounded-full border-2 border-gray-300 bg-white p-0 opacity-0 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50 group-hover:opacity-100"
+            >
+              <Plus className="h-4 w-4 text-gray-600" />
+            </Button>
+          </TaskSelectionPopover>
         </div>
       </div>
 

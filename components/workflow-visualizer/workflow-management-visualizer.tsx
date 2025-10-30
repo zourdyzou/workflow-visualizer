@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
-import { ReactFlow, Background, Controls, MiniMap, useNodesState, useEdgesState, MarkerType } from "@xyflow/react"
+import { ReactFlow, Background, Controls, useNodesState, useEdgesState, MarkerType } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 import { SimpleTaskNode } from "./nodes/simple-task-node"
 import { SystemTaskNode } from "./nodes/system-task-node"
@@ -71,33 +71,8 @@ export function WorkflowManagementVisualizer({
           },
         }}
       >
-        <Background color="#e2e8f0" gap={16} />
+        <Background color="#64748b" gap={16} size={1.5} variant="dots" />
         <Controls />
-        <MiniMap
-          nodeColor={(node) => {
-            switch (node.type) {
-              case "workerTask":
-                return "#ffffff"
-              case "httpTask":
-                return "#ffffff"
-              case "eventTask":
-                return "#ffffff"
-              case "startWorkflowTask":
-                return "#0f766e"
-              case "simpleTask":
-                return "#22c55e"
-              case "systemTask":
-                return "#0f766e"
-              case "decision":
-                return "#94a3b8"
-              case "startEnd":
-                return "#fbbf24"
-              default:
-                return "#94a3b8"
-            }
-          }}
-          maskColor="rgba(0, 0, 0, 0.1)"
-        />
       </ReactFlow>
     </div>
   )

@@ -1,7 +1,8 @@
 "use client"
 import { Handle, Position } from "@xyflow/react"
-import { Radio, X } from "lucide-react"
+import { Radio, X, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { TaskSelectionPopover } from "../task-selection-popover"
 
 interface EventTaskNodeProps {
   data: {
@@ -13,6 +14,11 @@ interface EventTaskNodeProps {
 }
 
 export function EventTaskNode({ data }: EventTaskNodeProps) {
+  const handleAddTask = (taskType: string) => {
+    console.log("[v0] Adding task after event node:", taskType)
+    // TODO: Implement task addition logic
+  }
+
   return (
     <div className="relative">
       <Handle type="target" position={Position.Top} className="!bg-gray-400" />
@@ -51,15 +57,16 @@ export function EventTaskNode({ data }: EventTaskNodeProps) {
           </div>
         )}
 
-        {/* Add button at bottom */}
-        <div className="absolute -bottom-3 left-1/2 -translate-x-1/2">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-6 w-6 rounded-full border-2 border-gray-300 bg-white p-0 opacity-0 transition-opacity hover:bg-gray-50 group-hover:opacity-100"
-          >
-            <span className="text-lg font-semibold text-gray-600">+</span>
-          </Button>
+        <div className="absolute -bottom-4 left-1/2 z-10 -translate-x-1/2">
+          <TaskSelectionPopover onSelectTask={handleAddTask}>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 rounded-full border-2 border-gray-300 bg-white p-0 opacity-0 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50 group-hover:opacity-100"
+            >
+              <Plus className="h-4 w-4 text-gray-600" />
+            </Button>
+          </TaskSelectionPopover>
         </div>
       </div>
 
