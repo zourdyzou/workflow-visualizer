@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Pencil, Plus, Trash2, ChevronsRight } from "lucide-react"
+import { Pencil, CirclePlus, Trash2, ChevronsRight } from "lucide-react"
 import { useState, useEffect } from "react"
 import type { ConductorWorkflow } from "./types/conductor-types"
 import { useWorkflow } from "./context/workflow-context"
@@ -114,7 +114,7 @@ export function WorkflowFormPanel({
         <Button variant="outline" onClick={onCancel} className="flex-1 bg-transparent">
           Cancel
         </Button>
-        <Button onClick={onSave} className="flex-1">
+        <Button onClick={onSave} className="flex-1 bg-sky-400 hover:bg-sky-500 text-white">
           Save
         </Button>
       </div>
@@ -271,8 +271,8 @@ function SimpleTaskForm({ task, taskReferenceName }: { task: any; taskReferenceN
         <div className="border border-dashed border-gray-300 rounded-md p-4">
           {parameters.length === 0 ? (
             <div className="flex items-center justify-between">
-              <Button onClick={addParameter} className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Plus className="h-4 w-4 mr-2" />
+              <Button onClick={addParameter} className="bg-sky-400 hover:bg-sky-500 text-white">
+                <CirclePlus className="h-4 w-4 mr-2" />
                 Add parameter
               </Button>
               <span className="text-sm text-gray-500">(empty)</span>
@@ -342,8 +342,8 @@ function SimpleTaskForm({ task, taskReferenceName }: { task: any; taskReferenceN
                   </Button>
                 </div>
               ))}
-              <Button onClick={addParameter} className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Plus className="h-4 w-4 mr-2" />
+              <Button onClick={addParameter} className="bg-sky-400 hover:bg-sky-500 text-white">
+                <CirclePlus className="h-4 w-4 mr-2" />
                 Add parameter
               </Button>
             </div>
@@ -543,8 +543,8 @@ function HttpTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNam
           <div className="border border-dashed border-gray-300 rounded-md p-4">
             {bodyParameters.length === 0 ? (
               <div className="flex items-center justify-between">
-                <Button onClick={addParameter} className="bg-blue-600 hover:bg-blue-700 text-white">
-                  <Plus className="h-4 w-4 mr-2" />
+                <Button onClick={addParameter} className="bg-sky-400 hover:bg-sky-500 text-white">
+                  <CirclePlus className="h-4 w-4 mr-2" />
                   Add parameter
                 </Button>
                 <span className="text-sm text-gray-500">(empty)</span>
@@ -592,8 +592,8 @@ function HttpTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNam
                     </Button>
                   </div>
                 ))}
-                <Button onClick={addParameter} className="bg-blue-600 hover:bg-blue-700 text-white">
-                  <Plus className="h-4 w-4 mr-2" />
+                <Button onClick={addParameter} className="bg-sky-400 hover:bg-sky-500 text-white">
+                  <CirclePlus className="h-4 w-4 mr-2" />
                   Add parameter
                 </Button>
               </div>
@@ -703,8 +703,8 @@ function EventTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNa
         <div className="border border-dashed border-gray-300 rounded-md p-4">
           {parameters.length === 0 ? (
             <div className="flex items-center justify-between">
-              <Button onClick={addParameter} className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Plus className="h-4 w-4 mr-2" />
+              <Button onClick={addParameter} className="bg-sky-400 hover:bg-sky-500 text-white">
+                <CirclePlus className="h-4 w-4 mr-2" />
                 Add parameter
               </Button>
               <span className="text-sm text-gray-500">(empty)</span>
@@ -774,8 +774,8 @@ function EventTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNa
                   </Button>
                 </div>
               ))}
-              <Button onClick={addParameter} className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Plus className="h-4 w-4 mr-2" />
+              <Button onClick={addParameter} className="bg-sky-400 hover:bg-sky-500 text-white">
+                <CirclePlus className="h-4 w-4 mr-2" />
                 Add parameter
               </Button>
             </div>
@@ -897,8 +897,8 @@ function StartWorkflowTaskForm({ task, taskReferenceName }: { task: any; taskRef
         <div className="border border-dashed border-gray-300 rounded-md p-4">
           {parameters.length === 0 ? (
             <div className="flex items-center justify-between">
-              <Button onClick={addParameter} className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Plus className="h-4 w-4 mr-2" />
+              <Button onClick={addParameter} className="bg-sky-400 hover:bg-sky-500 text-white">
+                <CirclePlus className="h-4 w-4 mr-2" />
                 Add parameter
               </Button>
               <span className="text-sm text-gray-500">(empty)</span>
@@ -968,8 +968,8 @@ function StartWorkflowTaskForm({ task, taskReferenceName }: { task: any; taskRef
                   </Button>
                 </div>
               ))}
-              <Button onClick={addParameter} className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Plus className="h-4 w-4 mr-2" />
+              <Button onClick={addParameter} className="bg-sky-400 hover:bg-sky-500 text-white">
+                <CirclePlus className="h-4 w-4 mr-2" />
                 Add parameter
               </Button>
             </div>
