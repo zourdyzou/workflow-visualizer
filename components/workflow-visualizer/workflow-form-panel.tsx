@@ -196,6 +196,7 @@ function TaskForm({ task, taskReferenceName }: { task: any; taskReferenceName: s
       {taskType === "EVENT" && <EventTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
       {taskType === "START_WORKFLOW" && <StartWorkflowTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
       {taskType === "WORKER_TASK" && <SimpleTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
+      {taskType === "DECISION" && <DecisionTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
     </div>
   )
 }
@@ -971,6 +972,102 @@ function StartWorkflowTaskForm({ task, taskReferenceName }: { task: any; taskRef
                 <Plus className="h-4 w-4 mr-2" />
                 Add parameter
               </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  )
+}
+
+function DecisionTaskForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
+  const { updateTask, getTask } = useWorkflow()
+
+  // Get the latest task data from the workflow context
+  const latestTask = getTask(taskReferenceName) || task
+
+  const [taskName, setTaskName] = useState(latestTask.name || "")
+  const [taskRef, setTaskRef] = useState(latestTask.taskReferenceName || taskReferenceName)
+
+  const decisionCases = latestTask.decisionCases || {}
+  const defaultCase = latestTask.defaultCase || []
+
+  useEffect(() => {
+    setTaskName(latestTask.name || "")
+    setTaskRef(latestTask.taskReferenceName || taskReferenceName)
+  }, [latestTask.name, latestTask.taskReferenceName, taskReferenceName])
+
+  useEffect(() => {
+    updateTask(taskReferenceName, {
+      name: taskName,
+      taskReferenceName: taskRef,
+    })
+  }, [taskName, taskRef, taskReferenceName, updateTask])
+
+  return (
+    <>
+      <div className="space-y-2">
+        <Label htmlFor="task-name">Task Name</Label>
+        <Input id="task-name" value={taskName} onChange={(e) => setTaskName(e.target.value)} />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="task-ref">Task Reference Name</Label>
+        <Input id="task-ref" value={taskRef} onChange={(e) => setTaskRef(e.target.value)} />
+      </div>
+
+      <div className="space-y-3">
+        <div className="text-sm font-medium text-gray-700">Decision Cases</div>
+
+        <div className="border border-dashed border-gray-300 rounded-md p-4">
+          {Object.keys(decisionCases).length === 0 ? (
+            <div className="text-sm text-gray-500 text-center py-2">(empty)</div>
+          ) : (
+            <div className="space-y-4">
+              {Object.entries(decisionCases).map(([caseName, tasks]: [string, any]) => (
+                <div key={caseName} className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm font-medium text-gray-900">Case: {caseName}</div>
+                    <div className="text-xs text-gray-500">
+                      ({Array.isArray(tasks) ? tasks.length : 0} task
+                      {Array.isArray(tasks) && tasks.length !== 1 ? "s" : ""})
+                    </div>
+                  </div>
+                  <div className="pl-4 space-y-1">
+                    {Array.isArray(tasks) && tasks.length > 0 ? (
+                      tasks.map((t: any, idx: number) => (
+                        <div key={idx} className="text-sm text-gray-600 flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                          <span className="font-mono text-xs">{t.taskReferenceName}</span>
+                          <span className="text-gray-400">({t.type})</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-sm text-gray-400 italic">No tasks</div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <div className="text-sm font-medium text-gray-700">Default Case</div>
+
+        <div className="border border-dashed border-gray-300 rounded-md p-4">
+          {defaultCase.length === 0 ? (
+            <div className="text-sm text-gray-500 text-center py-2">(empty)</div>
+          ) : (
+            <div className="space-y-1">
+              {defaultCase.map((t: any, idx: number) => (
+                <div key={idx} className="text-sm text-gray-600 flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                  <span className="font-mono text-xs">{t.taskReferenceName}</span>
+                  <span className="text-gray-400">({t.type})</span>
+                </div>
+              ))}
             </div>
           )}
         </div>

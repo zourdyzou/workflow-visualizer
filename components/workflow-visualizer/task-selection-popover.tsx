@@ -1,5 +1,5 @@
 "use client"
-import { Globe, FunctionSquare, Sparkles } from "lucide-react"
+import { Globe, FunctionSquare, Sparkles, GitBranch, GitFork, GitMerge } from "lucide-react"
 import type React from "react"
 import { useState } from "react"
 
@@ -25,6 +25,21 @@ export function TaskSelectionPopover({ children, nodeId }: TaskSelectionPopoverP
       id: "HTTP",
       label: "HTTP Task",
       icon: Globe,
+    },
+    {
+      id: "DECISION",
+      label: "Decision",
+      icon: GitBranch,
+    },
+    {
+      id: "FORK_JOIN",
+      label: "Fork",
+      icon: GitFork,
+    },
+    {
+      id: "JOIN",
+      label: "Join",
+      icon: GitMerge,
     },
   ]
 

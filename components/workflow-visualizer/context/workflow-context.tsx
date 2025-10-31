@@ -13,6 +13,8 @@ interface WorkflowContextType {
   removeTask: (taskReferenceName: string) => void
   exportWorkflow: () => ConductorWorkflow
   showConfirmation: (config: ConfirmationConfig) => void
+  addTaskToBranch: (task: ConductorTask, decisionTaskRef: string, branch: string) => void
+  addTaskToForkBranch: (task: ConductorTask, forkTaskRef: string, branchIndex: number) => void
 }
 
 interface ConfirmationConfig {
@@ -96,6 +98,56 @@ export function WorkflowProvider({
     setConfirmationConfig(null)
   }, [])
 
+  const addTaskToBranch = useCallback((task: ConductorTask, decisionTaskRef: string, branch: string) => {
+    setWorkflow((prev) => {
+      const newTasks = prev.tasks.map((t) => {
+        if (t.taskReferenceName === decisionTaskRef && (t.type === "DECISION" || t.type === "SWITCH")) {
+          const updatedTask = { ...t }
+
+          if (branch === "default") {
+            updatedTask.defaultCase = [...(updatedTask.defaultCase || []), task]
+          } else {
+            updatedTask.decisionCases = {
+              ...updatedTask.decisionCases,
+              [branch]: [...(updatedTask.decisionCases?.[branch] || []), task],
+            }
+          }
+
+          return updatedTask
+        }
+        return t
+      })
+
+      return { ...prev, tasks: newTasks }
+    })
+  }, [])
+
+  const addTaskToForkBranch = useCallback((task: ConductorTask, forkTaskRef: string, branchIndex: number) => {
+    setWorkflow((prev) => {
+      const newTasks = prev.tasks.map((t) => {
+        if (
+          t.taskReferenceName === forkTaskRef &&
+          (t.type === "FORK_JOIN" || t.type === "FORK_JOIN_DYNAMIC" || t.type === "DYNAMIC_FORK")
+        ) {
+          const updatedTask = { ...t }
+          const forkTasks = [...(updatedTask.forkTasks || [])]
+
+          if (!forkTasks[branchIndex]) {
+            forkTasks[branchIndex] = []
+          }
+
+          forkTasks[branchIndex] = [...forkTasks[branchIndex], task]
+          updatedTask.forkTasks = forkTasks
+
+          return updatedTask
+        }
+        return t
+      })
+
+      return { ...prev, tasks: newTasks }
+    })
+  }, [])
+
   return (
     <WorkflowContext.Provider
       value={{
@@ -107,6 +159,8 @@ export function WorkflowProvider({
         removeTask,
         exportWorkflow,
         showConfirmation,
+        addTaskToBranch,
+        addTaskToForkBranch,
       }}
     >
       {children}

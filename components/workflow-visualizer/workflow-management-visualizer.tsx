@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useMemo, useCallback, useEffect, useRef } from "react"
+import { useMemo, useCallback, useEffect, useRef, useState } from "react"
 import { ReactFlow, Background, Controls, useNodesState, useEdgesState, MarkerType } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 import { SimpleTaskNode } from "./nodes/simple-task-node"
@@ -13,8 +13,11 @@ import { WorkerTaskNode } from "./nodes/worker-task-node"
 import { HttpTaskNode } from "./nodes/http-task-node"
 import { EventTaskNode } from "./nodes/event-task-node"
 import { StartWorkflowNode } from "./nodes/start-workflow-node"
+import { ForkNode } from "./nodes/fork-node"
+import { JoinNode } from "./nodes/join-node"
 import { parseWorkflowToReactFlow } from "./utils/workflow-parser"
 import { useWorkflow } from "./context/workflow-context"
+import { WorkflowBranchSelectionDialog } from "./context/workflow-branch-selection-dialog"
 import type { ConductorWorkflow } from "./types/conductor-types"
 
 const nodeTypes = {
@@ -26,6 +29,8 @@ const nodeTypes = {
   httpTask: HttpTaskNode,
   eventTask: EventTaskNode,
   startWorkflowTask: StartWorkflowNode,
+  fork: ForkNode,
+  join: JoinNode,
 }
 
 interface WorkflowManagementVisualizerProps {
@@ -39,13 +44,14 @@ export function WorkflowManagementVisualizer({
   className = "",
   onNodeClick,
 }: WorkflowManagementVisualizerProps) {
-  const { workflow: contextWorkflow, addTask } = useWorkflow()
+  const { workflow: contextWorkflow, addTask, addTaskToBranch, addTaskToForkBranch } = useWorkflow()
 
   const activeWorkflow = contextWorkflow || workflow
 
   const isDraggingRef = useRef(false)
   const nodePositionsRef = useRef<Record<string, { x: number; y: number }>>({})
   const lastWorkflowVersionRef = useRef<string>("")
+  const countRef = useRef<number>(0)
 
   const { nodes: initialNodes, edges: initialEdges } = useMemo(
     () => parseWorkflowToReactFlow(activeWorkflow),
@@ -57,6 +63,14 @@ export function WorkflowManagementVisualizer({
 
   const nodesRef = useRef(nodes)
   const edgesRef = useRef(edges)
+
+  const [branchSelection, setBranchSelection] = useState<{
+    isOpen: boolean
+    branches: string[]
+    afterNodeId: string
+    taskType: string
+    taskData: any
+  } | null>(null)
 
   useEffect(() => {
     nodesRef.current = nodes
@@ -70,7 +84,6 @@ export function WorkflowManagementVisualizer({
   }, [nodes])
 
   useEffect(() => {
-    // Create a stable hash of the workflow to detect actual changes
     const workflowHash = JSON.stringify({
       name: activeWorkflow.name,
       tasks: activeWorkflow.tasks?.map((t) => ({
@@ -78,10 +91,12 @@ export function WorkflowManagementVisualizer({
         taskReferenceName: t.taskReferenceName,
         type: t.type,
         inputParameters: t.inputParameters,
+        decisionCases: t.decisionCases,
+        defaultCase: t.defaultCase,
+        forkTasks: t.forkTasks,
       })),
     })
 
-    // Skip re-parse if workflow data hasn't actually changed or if we're dragging
     if (workflowHash === lastWorkflowVersionRef.current || isDraggingRef.current) {
       return
     }
@@ -90,7 +105,6 @@ export function WorkflowManagementVisualizer({
 
     const { nodes: updatedNodes, edges: updatedEdges } = parseWorkflowToReactFlow(activeWorkflow)
 
-    // Merge updated node data with preserved positions
     const mergedNodes = updatedNodes.map((updatedNode) => {
       const existingPosition = nodePositionsRef.current[updatedNode.id]
       return {
@@ -105,7 +119,6 @@ export function WorkflowManagementVisualizer({
 
   const handleNodesChange = useCallback(
     (changes: any[]) => {
-      // Detect if any change is a drag operation
       const isDragging = changes.some((change) => change.type === "position" && change.dragging)
       isDraggingRef.current = isDragging
 
@@ -118,19 +131,10 @@ export function WorkflowManagementVisualizer({
     (afterNodeId: string, taskType: string) => {
       console.log("[v0] addNodeAfter called with:", { afterNodeId, taskType })
 
-      // Use refs to get the latest state
       const currentNodes = nodesRef.current
       const currentEdges = edgesRef.current
 
       console.log("[v0] Current nodes count:", currentNodes.length)
-
-      const existingNodes = currentNodes.filter((n) => n.data.task?.type === taskType)
-      const count = existingNodes.length + 1
-      const taskTypeName = taskType === "WORKER_TASK" ? "worker_task" : taskType.toLowerCase()
-      const newTaskName = `${taskTypeName}_${count}`
-      const newTaskRef = `${taskTypeName}_ref_${count}`
-
-      console.log("[v0] Creating new task:", { newTaskName, newTaskRef })
 
       const afterNode = currentNodes.find((n) => n.id === afterNodeId)
       if (!afterNode) {
@@ -138,11 +142,121 @@ export function WorkflowManagementVisualizer({
         return
       }
 
+      if (afterNode.data?.taskType === "DECISION" || afterNode.data?.taskType === "SWITCH") {
+        const branches = afterNode.data?.cases || ["true", "false", "default"]
+
+        let taskTypeName = taskType.toLowerCase()
+        if (taskType === "WORKER_TASK") taskTypeName = "worker_task"
+        else if (taskType === "FORK_JOIN") taskTypeName = "fork"
+        else if (taskType === "JOIN") taskTypeName = "join"
+        else if (taskType === "DECISION") taskTypeName = "decision"
+
+        const count = countRef.current
+        const newTaskName = `${taskTypeName}_${count}`
+        const newTaskRef = `${taskTypeName}_ref_${count}`
+        countRef.current += 1
+
+        const taskData: any = {
+          name: newTaskName,
+          taskReferenceName: newTaskRef,
+          type: taskType,
+          inputParameters: {},
+        }
+
+        if (taskType === "HTTP") {
+          taskData.inputParameters = {
+            http_request: {
+              method: "GET",
+              uri: "",
+            },
+          }
+        } else if (taskType === "DECISION") {
+          taskData.decisionCases = { true: [], false: [] }
+          taskData.defaultCase = []
+        } else if (taskType === "FORK_JOIN") {
+          taskData.forkTasks = [[], []]
+        }
+
+        setBranchSelection({
+          isOpen: true,
+          branches,
+          afterNodeId,
+          taskType,
+          taskData,
+        })
+        return
+      }
+
+      if (afterNode.data?.taskType === "FORK_JOIN" || afterNode.data?.taskType === "FORK_JOIN_DYNAMIC") {
+        const branchCount = afterNode.data?.branchCount || 2
+        const branches = Array.from({ length: branchCount }, (_, i) => `Branch ${i + 1}`)
+
+        let taskTypeName = taskType.toLowerCase()
+        if (taskType === "WORKER_TASK") taskTypeName = "worker_task"
+        else if (taskType === "FORK_JOIN") taskTypeName = "fork"
+        else if (taskType === "JOIN") taskTypeName = "join"
+        else if (taskType === "DECISION") taskTypeName = "decision"
+
+        const count = countRef.current
+        const newTaskName = `${taskTypeName}_${count}`
+        const newTaskRef = `${taskTypeName}_ref_${count}`
+        countRef.current += 1
+
+        const taskData: any = {
+          name: newTaskName,
+          taskReferenceName: newTaskRef,
+          type: taskType,
+          inputParameters: {},
+        }
+
+        if (taskType === "HTTP") {
+          taskData.inputParameters = {
+            http_request: {
+              method: "GET",
+              uri: "",
+            },
+          }
+        } else if (taskType === "DECISION") {
+          taskData.decisionCases = {
+            true: [],
+            false: [],
+          }
+          taskData.defaultCase = []
+        } else if (taskType === "FORK_JOIN") {
+          taskData.forkTasks = [[], []]
+        }
+
+        setBranchSelection({
+          isOpen: true,
+          branches,
+          afterNodeId,
+          taskType,
+          taskData,
+        })
+        return
+      }
+
+      let taskTypeName = taskType.toLowerCase()
+      if (taskType === "WORKER_TASK") taskTypeName = "worker_task"
+      else if (taskType === "FORK_JOIN") taskTypeName = "fork"
+      else if (taskType === "JOIN") taskTypeName = "join"
+      else if (taskType === "DECISION") taskTypeName = "decision"
+
+      const count = countRef.current
+      const newTaskName = `${taskTypeName}_${count}`
+      const newTaskRef = `${taskTypeName}_ref_${count}`
+      countRef.current += 1
+
+      console.log("[v0] Creating new task:", { newTaskName, newTaskRef })
+
       const newNodeId = `node-${Date.now()}`
 
       let reactFlowNodeType = "workerTask"
       if (taskType === "HTTP") reactFlowNodeType = "httpTask"
       else if (taskType === "EVENT") reactFlowNodeType = "eventTask"
+      else if (taskType === "DECISION") reactFlowNodeType = "decision"
+      else if (taskType === "FORK_JOIN") reactFlowNodeType = "fork"
+      else if (taskType === "JOIN") reactFlowNodeType = "join"
 
       const taskData: any = {
         name: newTaskName,
@@ -167,6 +281,18 @@ export function WorkflowManagementVisualizer({
         }
         nodeData.method = "GET"
         nodeData.url = ""
+      } else if (taskType === "DECISION") {
+        taskData.decisionCases = {
+          true: [],
+          false: [],
+        }
+        taskData.defaultCase = []
+        nodeData.cases = ["true", "false", "default"]
+      } else if (taskType === "FORK_JOIN") {
+        taskData.forkTasks = [[], []]
+        nodeData.branchCount = 2
+      } else if (taskType === "JOIN") {
+        nodeData.branchCount = 2
       }
 
       const afterTaskRef = afterNode.data?.taskReferenceName
@@ -215,15 +341,16 @@ export function WorkflowManagementVisualizer({
         source: afterNodeId,
         target: newNodeId,
         type: "smoothstep",
+        animated: false,
         markerEnd: {
           type: MarkerType.ArrowClosed,
           width: 20,
           height: 20,
-          color: "#94a3b8",
+          color: "#64748b",
         },
         style: {
           strokeWidth: 2,
-          stroke: "#94a3b8",
+          stroke: "#64748b",
         },
       }
 
@@ -239,42 +366,62 @@ export function WorkflowManagementVisualizer({
     [setNodes, setEdges, addTask],
   )
 
+  const handleBranchSelect = useCallback(
+    (branch: string) => {
+      if (!branchSelection) return
+
+      const { afterNodeId, taskData } = branchSelection
+      const afterNode = nodesRef.current.find((n) => n.id === afterNodeId)
+
+      if (!afterNode) return
+
+      const afterTaskRef = afterNode.data?.taskReferenceName
+
+      if (afterNode.data?.taskType === "DECISION" || afterNode.data?.taskType === "SWITCH") {
+        console.log("[v0] Adding task to decision branch:", { afterTaskRef, branch })
+        addTaskToBranch(taskData, afterTaskRef, branch)
+      } else if (afterNode.data?.taskType === "FORK_JOIN" || afterNode.data?.taskType === "FORK_JOIN_DYNAMIC") {
+        const branchIndex = Number.parseInt(branch.replace("Branch ", "")) - 1
+        console.log("[v0] Adding task to fork branch:", { afterTaskRef, branchIndex })
+        addTaskToForkBranch(taskData, afterTaskRef, branchIndex)
+      }
+
+      setBranchSelection(null)
+    },
+    [branchSelection, addTaskToBranch, addTaskToForkBranch],
+  )
+
   const removeNode = useCallback(
     (nodeId: string) => {
-      // Remove the node
       setNodes((nds) => nds.filter((n) => n.id !== nodeId))
 
-      // Find edges connected to this node
       const incomingEdge = edges.find((e) => e.target === nodeId)
       const outgoingEdge = edges.find((e) => e.source === nodeId)
 
-      // Reconnect the workflow by creating a new edge from source to target
       if (incomingEdge && outgoingEdge) {
         const newEdge = {
           id: `edge-${incomingEdge.source}-${outgoingEdge.target}`,
           source: incomingEdge.source,
           target: outgoingEdge.target,
           type: "smoothstep",
+          animated: false,
           markerEnd: {
             type: MarkerType.ArrowClosed,
             width: 20,
             height: 20,
-            color: "#94a3b8",
+            color: "#64748b",
           },
           style: {
             strokeWidth: 2,
-            stroke: "#94a3b8",
+            stroke: "#64748b",
           },
         }
 
-        // Remove old edges and add new connecting edge
         setEdges((eds) => [...eds.filter((e) => e.source !== nodeId && e.target !== nodeId), newEdge])
       } else {
-        // Just remove edges connected to this node
         setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId))
       }
 
-      // Remove from position ref
       delete nodePositionsRef.current[nodeId]
     },
     [edges, setNodes, setEdges],
@@ -292,15 +439,16 @@ export function WorkflowManagementVisualizer({
   const defaultEdgeOptions = useMemo(
     () => ({
       type: "smoothstep" as const,
+      animated: false,
       markerEnd: {
         type: MarkerType.ArrowClosed,
         width: 20,
         height: 20,
-        color: "#94a3b8",
+        color: "#64748b",
       },
       style: {
         strokeWidth: 2,
-        stroke: "#94a3b8",
+        stroke: "#64748b",
       },
     }),
     [],
@@ -331,6 +479,15 @@ export function WorkflowManagementVisualizer({
         <Background color="#64748b" gap={16} size={1.5} variant="dots" />
         <Controls />
       </ReactFlow>
+
+      {branchSelection && (
+        <WorkflowBranchSelectionDialog
+          isOpen={branchSelection.isOpen}
+          branches={branchSelection.branches}
+          onSelect={handleBranchSelect}
+          onCancel={() => setBranchSelection(null)}
+        />
+      )}
     </div>
   )
 }

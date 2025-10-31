@@ -1,8 +1,9 @@
 import type { Node, Edge } from "@xyflow/react"
 import type { ConductorWorkflow, ConductorTask } from "../types/conductor-types"
 
-const VERTICAL_SPACING = 200
-const HORIZONTAL_SPACING = 300
+const VERTICAL_SPACING = 250
+const HORIZONTAL_SPACING = 400
+const BRANCH_VERTICAL_OFFSET = 150
 
 export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
   nodes: Node[]
@@ -24,13 +25,13 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
 
   // Process tasks
   let previousNodeId = "start"
+  const branchEndNodes: { nodeId: string; y: number }[] = []
 
   workflow.tasks.forEach((task, index) => {
     const nodeId = task.taskReferenceName || `task_${index}`
     const nodeType = getNodeType(task.type)
 
-    // Determine node position
-    const xPosition = 400 // Center position, adjust for branching later
+    const xPosition = 400
 
     const node: Node = {
       id: nodeId,
@@ -40,44 +41,69 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
         label: task.name,
         taskReferenceName: task.taskReferenceName,
         taskType: task.type,
-        // Pass the entire task object for form access
         task: task,
-        // Additional fields for display
         method: (task.inputParameters as any)?.http_request?.method,
         url: (task.inputParameters as any)?.http_request?.uri,
         collapsed: task.type === "DYNAMIC_FORK" || task.type === "FORK_JOIN_DYNAMIC",
+        branchCount: task.forkTasks?.length || 2,
+        cases: task.decisionCases ? Object.keys(task.decisionCases).concat(["default"]) : undefined,
       },
     }
 
     nodes.push(node)
 
-    // Add edge from previous node
-    edges.push({
-      id: `${previousNodeId}-${nodeId}`,
-      source: previousNodeId,
-      target: nodeId,
-      type: "smoothstep",
-    })
+    if (branchEndNodes.length > 0) {
+      // Connect all branch ends to this node
+      branchEndNodes.forEach((branchEnd) => {
+        edges.push({
+          id: `${branchEnd.nodeId}-${nodeId}`,
+          source: branchEnd.nodeId,
+          target: nodeId,
+          type: "smoothstep",
+          animated: false,
+        })
+      })
+      branchEndNodes.length = 0
+    } else {
+      edges.push({
+        id: `${previousNodeId}-${nodeId}`,
+        source: previousNodeId,
+        target: nodeId,
+        type: "smoothstep",
+        animated: false,
+      })
+    }
 
     previousNodeId = nodeId
+
+    const branchStartY = yPosition
     yPosition += VERTICAL_SPACING
 
-    // Handle special task types
     if (task.type === "FORK_JOIN" || task.type === "FORK_JOIN_DYNAMIC") {
-      // Add fork branches (simplified for now)
-      const forkTasks = (task as any).forkTasks || []
+      const forkTasks = task.forkTasks || []
+      const branchCount = forkTasks.length
+      let maxBranchY = branchStartY + VERTICAL_SPACING // Start from after the fork node
+
       forkTasks.forEach((forkBranch: ConductorTask[], branchIndex: number) => {
-        const branchX = xPosition - 200 + branchIndex * 400
+        const branchX = xPosition - ((branchCount - 1) * HORIZONTAL_SPACING) / 2 + branchIndex * HORIZONTAL_SPACING
+        let branchY = branchStartY + VERTICAL_SPACING + BRANCH_VERTICAL_OFFSET
+        let lastNodeInBranch = nodeId
+
         forkBranch.forEach((forkTask, forkIndex) => {
           const forkNodeId = `${nodeId}_fork_${branchIndex}_${forkIndex}`
+          const forkNodeType = getNodeType(forkTask.type)
+
           nodes.push({
             id: forkNodeId,
-            type: getNodeType(forkTask.type),
-            position: { x: branchX, y: yPosition + forkIndex * VERTICAL_SPACING },
+            type: forkNodeType,
+            position: { x: branchX, y: branchY },
             data: {
               label: forkTask.name,
               taskReferenceName: forkTask.taskReferenceName,
               taskType: forkTask.type,
+              task: forkTask,
+              method: (forkTask.inputParameters as any)?.http_request?.method,
+              url: (forkTask.inputParameters as any)?.http_request?.uri,
             },
           })
 
@@ -85,33 +111,100 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
             edges.push({
               id: `${nodeId}-${forkNodeId}`,
               source: nodeId,
+              sourceHandle: `branch-${branchIndex}`,
               target: forkNodeId,
+              type: "smoothstep",
+              animated: false,
+              label: `Branch ${branchIndex + 1}`,
+              labelStyle: { fontSize: 10, fill: "#64748b" },
+            })
+          } else {
+            edges.push({
+              id: `${lastNodeInBranch}-${forkNodeId}`,
+              source: lastNodeInBranch,
+              target: forkNodeId,
+              type: "smoothstep",
+              animated: false,
             })
           }
+
+          lastNodeInBranch = forkNodeId
+          branchY += VERTICAL_SPACING
         })
+
+        // Track branch end for convergence
+        branchEndNodes.push({ nodeId: lastNodeInBranch, y: branchY })
+        maxBranchY = Math.max(maxBranchY, branchY)
       })
+
+      yPosition = maxBranchY + VERTICAL_SPACING
     }
 
     if (task.type === "DECISION" || task.type === "SWITCH") {
-      // Handle decision branches
-      const decisionCases = (task as any).decisionCases || {}
-      Object.keys(decisionCases).forEach((caseKey, caseIndex) => {
-        const caseX = xPosition - 200 + caseIndex * 400
-        // Add case label nodes
-        nodes.push({
-          id: `${nodeId}_case_${caseKey}`,
-          type: "default",
-          position: { x: caseX, y: yPosition },
-          data: { label: caseKey },
-          style: {
-            background: "#e0e7ff",
-            border: "1px solid #818cf8",
-            borderRadius: "4px",
-            padding: "8px",
-            fontSize: "12px",
-          },
+      const decisionCases = task.decisionCases || {}
+      const caseKeys = Object.keys(decisionCases).concat(["default"])
+      const caseCount = caseKeys.length
+      let maxBranchY = branchStartY + VERTICAL_SPACING // Start from after the decision node
+
+      caseKeys.forEach((caseKey, caseIndex) => {
+        const caseTasks = caseKey === "default" ? task.defaultCase || [] : decisionCases[caseKey]
+
+        if (caseTasks.length === 0) return
+
+        const caseX = xPosition - ((caseCount - 1) * HORIZONTAL_SPACING) / 2 + caseIndex * HORIZONTAL_SPACING
+        let caseY = branchStartY + VERTICAL_SPACING + BRANCH_VERTICAL_OFFSET
+        let lastNodeInCase = nodeId
+
+        caseTasks.forEach((caseTask: ConductorTask, taskIndex: number) => {
+          const caseNodeId = `${nodeId}_case_${caseKey}_${taskIndex}`
+          const caseNodeType = getNodeType(caseTask.type)
+
+          nodes.push({
+            id: caseNodeId,
+            type: caseNodeType,
+            position: { x: caseX, y: caseY },
+            data: {
+              label: caseTask.name,
+              taskReferenceName: caseTask.taskReferenceName,
+              taskType: caseTask.type,
+              task: caseTask,
+              method: (caseTask.inputParameters as any)?.http_request?.method,
+              url: (caseTask.inputParameters as any)?.http_request?.uri,
+            },
+          })
+
+          if (taskIndex === 0) {
+            edges.push({
+              id: `${nodeId}-${caseNodeId}`,
+              source: nodeId,
+              sourceHandle: `case-${caseKey}`,
+              target: caseNodeId,
+              type: "smoothstep",
+              animated: false,
+              label: caseKey === "default" ? "default" : `case: ${caseKey}`,
+              labelStyle: { fontSize: 10, fill: "#64748b" },
+              labelBgStyle: { fill: "#ffffff", fillOpacity: 0.8 },
+            })
+          } else {
+            edges.push({
+              id: `${lastNodeInCase}-${caseNodeId}`,
+              source: lastNodeInCase,
+              target: caseNodeId,
+              type: "smoothstep",
+              animated: false,
+            })
+          }
+
+          lastNodeInCase = caseNodeId
+          caseY += VERTICAL_SPACING
         })
+
+        // Track case end for convergence
+        branchEndNodes.push({ nodeId: lastNodeInCase, y: caseY })
+        maxBranchY = Math.max(maxBranchY, caseY)
       })
+
+      yPosition = maxBranchY + VERTICAL_SPACING
     }
   })
 
@@ -123,18 +216,30 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
     data: { label: "End", type: "end" },
   })
 
-  edges.push({
-    id: `${previousNodeId}-end`,
-    source: previousNodeId,
-    target: "end",
-    type: "smoothstep",
-  })
+  if (branchEndNodes.length > 0) {
+    branchEndNodes.forEach((branchEnd) => {
+      edges.push({
+        id: `${branchEnd.nodeId}-end`,
+        source: branchEnd.nodeId,
+        target: "end",
+        type: "smoothstep",
+        animated: false,
+      })
+    })
+  } else {
+    edges.push({
+      id: `${previousNodeId}-end`,
+      source: previousNodeId,
+      target: "end",
+      type: "smoothstep",
+      animated: false,
+    })
+  }
 
   return { nodes, edges }
 }
 
 function getNodeType(taskType: string): string {
-  // Map specific task types to their node components
   switch (taskType) {
     case "SIMPLE":
       return "workerTask"
@@ -151,11 +256,12 @@ function getNodeType(taskType: string): string {
     case "FORK_JOIN":
     case "FORK_JOIN_DYNAMIC":
     case "DYNAMIC_FORK":
+      return "fork"
     case "JOIN":
-    case "DYNAMIC":
+      return "join"
     case "TERMINATE":
       return "systemTask"
     default:
-      return "workerTask" // Default to worker task for unknown types
+      return "workerTask"
   }
 }
