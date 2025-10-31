@@ -85,6 +85,10 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
       let maxBranchY = branchStartY + VERTICAL_SPACING // Start from after the fork node
 
       forkTasks.forEach((forkBranch: ConductorTask[], branchIndex: number) => {
+        if (!forkBranch || forkBranch.length === 0) {
+          return
+        }
+
         const branchX = xPosition - ((branchCount - 1) * HORIZONTAL_SPACING) / 2 + branchIndex * HORIZONTAL_SPACING
         let branchY = branchStartY + VERTICAL_SPACING + BRANCH_VERTICAL_OFFSET
         let lastNodeInBranch = nodeId

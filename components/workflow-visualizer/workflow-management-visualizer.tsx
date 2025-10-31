@@ -142,6 +142,98 @@ export function WorkflowManagementVisualizer({
         return
       }
 
+      if (afterNodeId.includes("_fork_")) {
+        // Extract fork parent and branch info from node ID pattern: forkRef_fork_branchIndex_taskIndex
+        const parts = afterNodeId.split("_fork_")
+        const forkTaskRef = parts[0]
+        const branchParts = parts[1].split("_")
+        const branchIndex = Number.parseInt(branchParts[0])
+
+        let taskTypeName = taskType.toLowerCase()
+        if (taskType === "WORKER_TASK") taskTypeName = "worker_task"
+        else if (taskType === "FORK_JOIN") taskTypeName = "fork"
+        else if (taskType === "JOIN") taskTypeName = "join"
+        else if (taskType === "DECISION") taskTypeName = "decision"
+
+        const count = countRef.current
+        const newTaskName = `${taskTypeName}_${count}`
+        const newTaskRef = `${taskTypeName}_ref_${count}`
+        countRef.current += 1
+
+        console.log("[v0] Creating new task for fork branch:", { newTaskName, newTaskRef, forkTaskRef, branchIndex })
+
+        const taskData: any = {
+          name: newTaskName,
+          taskReferenceName: newTaskRef,
+          type: taskType,
+          inputParameters: {},
+        }
+
+        if (taskType === "HTTP") {
+          taskData.inputParameters = {
+            http_request: {
+              method: "GET",
+              uri: "",
+            },
+          }
+        } else if (taskType === "DECISION") {
+          taskData.decisionCases = { true: [], false: [] }
+          taskData.defaultCase = []
+        } else if (taskType === "FORK_JOIN") {
+          taskData.forkTasks = [[], []]
+        }
+
+        console.log("[v0] Adding task to fork branch:", { forkTaskRef, branchIndex })
+        addTaskToForkBranch(taskData, forkTaskRef, branchIndex)
+        return
+      }
+
+      if (afterNodeId.includes("_case_")) {
+        // Extract decision parent and case info from node ID pattern: decisionRef_case_caseName_taskIndex
+        const parts = afterNodeId.split("_case_")
+        const decisionTaskRef = parts[0]
+        const caseParts = parts[1].split("_")
+        const caseName = caseParts.slice(0, -1).join("_") // Handle case names with underscores
+
+        let taskTypeName = taskType.toLowerCase()
+        if (taskType === "WORKER_TASK") taskTypeName = "worker_task"
+        else if (taskType === "FORK_JOIN") taskTypeName = "fork"
+        else if (taskType === "JOIN") taskTypeName = "join"
+        else if (taskType === "DECISION") taskTypeName = "decision"
+
+        const count = countRef.current
+        const newTaskName = `${taskTypeName}_${count}`
+        const newTaskRef = `${taskTypeName}_ref_${count}`
+        countRef.current += 1
+
+        console.log("[v0] Creating new task for decision case:", { newTaskName, newTaskRef, decisionTaskRef, caseName })
+
+        const taskData: any = {
+          name: newTaskName,
+          taskReferenceName: newTaskRef,
+          type: taskType,
+          inputParameters: {},
+        }
+
+        if (taskType === "HTTP") {
+          taskData.inputParameters = {
+            http_request: {
+              method: "GET",
+              uri: "",
+            },
+          }
+        } else if (taskType === "DECISION") {
+          taskData.decisionCases = { true: [], false: [] }
+          taskData.defaultCase = []
+        } else if (taskType === "FORK_JOIN") {
+          taskData.forkTasks = [[], []]
+        }
+
+        console.log("[v0] Adding task to decision branch:", { decisionTaskRef, caseName })
+        addTaskToBranch(taskData, decisionTaskRef, caseName)
+        return
+      }
+
       if (afterNode.data?.taskType === "DECISION" || afterNode.data?.taskType === "SWITCH") {
         const branches = afterNode.data?.cases || ["true", "false", "default"]
 
