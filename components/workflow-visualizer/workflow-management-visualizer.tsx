@@ -142,12 +142,6 @@ export function WorkflowManagementVisualizer({
 
       console.log("[v0] Current nodes count:", currentNodes.length)
 
-      const afterNode = currentNodes.find((n) => n.id === afterNodeId)
-      if (!afterNode) {
-        console.log("[v0] After node not found:", afterNodeId)
-        return
-      }
-
       if (afterNodeId.includes("_fork_")) {
         const parts = afterNodeId.split("_fork_")
         const forkTaskRef = parts[0]
@@ -261,6 +255,12 @@ export function WorkflowManagementVisualizer({
 
         console.log("[v0] Adding task to decision branch:", { decisionTaskRef, caseName })
         addTaskToBranch(taskData, decisionTaskRef, caseName)
+        return
+      }
+
+      const afterNode = currentNodes.find((n) => n.id === afterNodeId)
+      if (!afterNode) {
+        console.log("[v0] After node not found:", afterNodeId)
         return
       }
 

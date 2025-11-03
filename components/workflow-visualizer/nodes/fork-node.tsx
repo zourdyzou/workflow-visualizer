@@ -5,6 +5,7 @@ import { memo } from "react"
 import { GitFork, X, Plus, Minus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useWorkflow } from "../context/workflow-context"
+import { TaskSelectionPopover } from "../task-selection-popover"
 
 interface ForkNodeProps {
   data: {
@@ -100,6 +101,8 @@ export const ForkNode = memo(function ForkNode({ data, id }: ForkNodeProps) {
 
       {Array.from({ length: branchCount }).map((_, index) => {
         const position = getHandlePosition(index, branchCount)
+        const branchNodeId = `${data.taskReferenceName}_fork_${index}_branch_0`
+
         return (
           <div
             key={`branch-${index}`}
@@ -108,7 +111,7 @@ export const ForkNode = memo(function ForkNode({ data, id }: ForkNodeProps) {
               left: position,
               top: "100%",
               transform: "translateX(-50%)",
-              marginTop: "-8px", // Using negative margin to pull handles up closer to node
+              marginTop: "-8px",
             }}
           >
             {/* Branch handle - tiny, subtle blue dot */}
@@ -121,22 +124,23 @@ export const ForkNode = memo(function ForkNode({ data, id }: ForkNodeProps) {
 
             {/* Control buttons below the handle */}
             <div className="flex gap-1">
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={handleAddBranch}
-                className="h-6 w-6 rounded-full border border-gray-300 bg-white p-0 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50"
-                title="Add branch"
-              >
-                <Plus className="h-3 w-3 text-gray-600" />
-              </Button>
+              <TaskSelectionPopover nodeId={branchNodeId}>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-6 w-6 rounded-full border border-gray-300 bg-white p-0 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50"
+                  title={`Add task to Branch ${index + 1}`}
+                >
+                  <Plus className="h-3 w-3 text-gray-600" />
+                </Button>
+              </TaskSelectionPopover>
               {branchCount > 1 && (
                 <Button
                   size="icon"
                   variant="ghost"
                   onClick={(e) => handleRemoveBranch(e, index)}
                   className="h-6 w-6 rounded-full border border-gray-300 bg-white p-0 shadow-sm transition-all hover:border-red-400 hover:bg-red-50"
-                  title={`Remove Branch ${index + 1}`}
+                  title={`Remove all tasks from Branch ${index + 1}`}
                 >
                   <Minus className="h-3 w-3 text-gray-600" />
                 </Button>

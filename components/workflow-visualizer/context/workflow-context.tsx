@@ -204,7 +204,7 @@ export function WorkflowProvider({
         ) {
           const updatedTask = { ...t }
           const forkTasks = [...(updatedTask.forkTasks || [])]
-          forkTasks.splice(branchIndex, 1) // Remove branch at index
+          forkTasks[branchIndex] = [] // Clear all tasks from this branch
           updatedTask.forkTasks = forkTasks
           return updatedTask
         }
