@@ -1,7 +1,7 @@
 "use client"
 import { Handle, Position } from "@xyflow/react"
 
-interface SimpleTaskNodeProps {
+interface WorkerTaskNodeProps {
   data: {
     label: string
     taskReferenceName: string
@@ -10,7 +10,7 @@ interface SimpleTaskNodeProps {
   }
 }
 
-export function SimpleTaskNode({ data }: SimpleTaskNodeProps) {
+export function SimpleTaskNode({ data }: WorkerTaskNodeProps) {
   return (
     <div className="relative">
       <Handle type="target" position={Position.Top} className="!bg-gray-400" />
@@ -23,7 +23,7 @@ export function SimpleTaskNode({ data }: SimpleTaskNodeProps) {
           </div>
 
           <div className="flex flex-col items-end gap-2">
-            <span className="rounded bg-yellow-400 px-2 py-1 text-xs font-medium text-gray-900">{data.taskType}</span>
+            <span className="rounded bg-yellow-100 px-2 py-1 text-xs font-medium text-gray-900">{data.taskType}</span>
           </div>
         </div>
       </div>

@@ -2,9 +2,8 @@
 import { Handle, Position } from "@xyflow/react"
 import type React from "react"
 import { memo } from "react"
-import { GitBranch, X, Plus } from "lucide-react"
+import { GitBranch, X, Plus, Minus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { TaskSelectionPopover } from "../task-selection-popover"
 import { useWorkflow } from "../context/workflow-context"
 
 interface DecisionNodeProps {
@@ -19,7 +18,7 @@ interface DecisionNodeProps {
 }
 
 export const DecisionNode = memo(function DecisionNode({ data, id }: DecisionNodeProps) {
-  const { removeTask, showConfirmation } = useWorkflow()
+  const { removeTask, showConfirmation, removeDecisionCase, addDecisionCase } = useWorkflow()
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -37,13 +36,54 @@ export const DecisionNode = memo(function DecisionNode({ data, id }: DecisionNod
     })
   }
 
+  const handleAddCase = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    addDecisionCase(data.taskReferenceName)
+  }
+
+  const handleRemoveCase = (e: React.MouseEvent, caseKey: string, caseIndex: number) => {
+    e.stopPropagation()
+    if (caseKey === "default") {
+      showConfirmation({
+        title: "Remove Default Case",
+        description: "Are you sure you want to remove the default case? This will delete all tasks in this path.",
+        onConfirm: () => {
+          removeDecisionCase(data.taskReferenceName, caseKey)
+        },
+        confirmText: "Remove",
+        cancelText: "Cancel",
+      })
+    } else {
+      showConfirmation({
+        title: "Remove Decision Case",
+        description: `Are you sure you want to remove case "${caseKey}"? This will delete all tasks in this path.`,
+        onConfirm: () => {
+          removeDecisionCase(data.taskReferenceName, caseKey)
+        },
+        confirmText: "Remove",
+        cancelText: "Cancel",
+      })
+    }
+  }
+
   const cases = data.cases || ["true", "false", "default"]
 
+  const getHandlePosition = (index: number, total: number) => {
+    if (total === 1) return "50%"
+    if (total === 2) {
+      // For 2 cases, use 25% and 75% for wide spacing
+      return index === 0 ? "25%" : "75%"
+    }
+    // For 3+ cases, distribute evenly with padding on edges
+    const spacing = 80 / (total - 1) // Use 80% of width (10% padding on each side)
+    return `${10 + spacing * index}%`
+  }
+
   return (
-    <div className="relative">
+    <div className="group relative pb-1">
       <Handle type="target" position={Position.Top} className="!bg-gray-400" />
 
-      <div className="group relative min-w-[280px] rounded-lg border-2 border-green-500 bg-green-50 p-4 shadow-lg transition-shadow hover:shadow-xl">
+      <div className="relative min-w-[280px] rounded-lg border-2 border-green-500 bg-green-50 p-4 shadow-lg transition-shadow hover:shadow-xl">
         {/* Delete button */}
         <Button
           size="icon"
@@ -68,33 +108,55 @@ export const DecisionNode = memo(function DecisionNode({ data, id }: DecisionNod
 
           <span className="rounded bg-green-500 px-2.5 py-1 text-xs font-medium text-white">DECISION</span>
         </div>
-
-        <div className="absolute -bottom-4 left-1/2 z-10 -translate-x-1/2">
-          <TaskSelectionPopover nodeId={id}>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 rounded-full border-2 border-gray-300 bg-white p-0 opacity-0 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50 group-hover:opacity-100"
-            >
-              <Plus className="h-4 w-4 text-gray-600" />
-            </Button>
-          </TaskSelectionPopover>
-        </div>
       </div>
 
-      {/* Multiple output handles for decision cases */}
-      {cases.map((caseKey, index) => (
-        <Handle
-          key={`case-${caseKey}`}
-          type="source"
-          position={Position.Bottom}
-          id={`case-${caseKey}`}
-          className="!bg-green-500"
-          style={{
-            left: `${((index + 1) / (cases.length + 1)) * 100}%`,
-          }}
-        />
-      ))}
+      {cases.map((caseKey, index) => {
+        const position = getHandlePosition(index, cases.length)
+        return (
+          <div
+            key={`case-${caseKey}`}
+            className="absolute flex flex-col items-center gap-0.5"
+            style={{
+              left: position,
+              top: "100%",
+              transform: "translateX(-50%)",
+              marginTop: "-8px", // Using negative margin to pull handles up closer to node
+            }}
+          >
+            {/* Decision case handle - tiny, subtle green dot */}
+            <Handle
+              type="source"
+              position={Position.Bottom}
+              id={`case-${caseKey}`}
+              className="!relative !left-0 !top-0 !h-1 !w-1 !translate-x-0 !translate-y-0 !rounded-full !border !border-green-600 !bg-green-500"
+            />
+
+            {/* Control buttons below the handle */}
+            <div className="flex gap-1">
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={handleAddCase}
+                className="h-6 w-6 rounded-full border border-gray-300 bg-white p-0 shadow-sm transition-all hover:border-green-400 hover:bg-green-50"
+                title="Add decision case"
+              >
+                <Plus className="h-3 w-3 text-gray-600" />
+              </Button>
+              {cases.length > 2 && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={(e) => handleRemoveCase(e, caseKey, index)}
+                  className="h-6 w-6 rounded-full border border-gray-300 bg-white p-0 shadow-sm transition-all hover:border-red-400 hover:bg-red-50"
+                  title={`Remove case "${caseKey}"`}
+                >
+                  <Minus className="h-3 w-3 text-gray-600" />
+                </Button>
+              )}
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 })

@@ -15,6 +15,10 @@ interface WorkflowContextType {
   showConfirmation: (config: ConfirmationConfig) => void
   addTaskToBranch: (task: ConductorTask, decisionTaskRef: string, branch: string) => void
   addTaskToForkBranch: (task: ConductorTask, forkTaskRef: string, branchIndex: number) => void
+  addForkBranch: (forkTaskRef: string) => void
+  removeForkBranch: (forkTaskRef: string, branchIndex: number) => void
+  addDecisionCase: (decisionTaskRef: string) => void
+  removeDecisionCase: (decisionTaskRef: string, caseKey: string) => void
 }
 
 interface ConfirmationConfig {
@@ -57,6 +61,30 @@ export function WorkflowProvider({
 
   const addTask = useCallback((task: ConductorTask, afterTaskRef?: string) => {
     setWorkflow((prev) => {
+      if (task.type === "FORK_JOIN") {
+        const joinTask: ConductorTask = {
+          name: `${task.name}_join`,
+          taskReferenceName: `${task.taskReferenceName}_join`,
+          type: "JOIN",
+          inputParameters: {},
+          joinOn: [task.taskReferenceName],
+        }
+
+        if (!afterTaskRef) {
+          return { ...prev, tasks: [...prev.tasks, task, joinTask] }
+        }
+
+        const afterIndex = prev.tasks.findIndex((t) => t.taskReferenceName === afterTaskRef)
+        if (afterIndex === -1) {
+          return { ...prev, tasks: [...prev.tasks, task, joinTask] }
+        }
+
+        const newTasks = [...prev.tasks]
+        newTasks.splice(afterIndex + 1, 0, task, joinTask)
+        return { ...prev, tasks: newTasks }
+      }
+
+      // Original logic for non-FORK tasks
       if (!afterTaskRef) {
         return { ...prev, tasks: [...prev.tasks, task] }
       }
@@ -148,6 +176,82 @@ export function WorkflowProvider({
     })
   }, [])
 
+  const addForkBranch = useCallback((forkTaskRef: string) => {
+    setWorkflow((prev) => {
+      const newTasks = prev.tasks.map((t) => {
+        if (
+          t.taskReferenceName === forkTaskRef &&
+          (t.type === "FORK_JOIN" || t.type === "FORK_JOIN_DYNAMIC" || t.type === "DYNAMIC_FORK")
+        ) {
+          const updatedTask = { ...t }
+          const forkTasks = [...(updatedTask.forkTasks || [])]
+          forkTasks.push([]) // Add empty branch
+          updatedTask.forkTasks = forkTasks
+          return updatedTask
+        }
+        return t
+      })
+      return { ...prev, tasks: newTasks }
+    })
+  }, [])
+
+  const removeForkBranch = useCallback((forkTaskRef: string, branchIndex: number) => {
+    setWorkflow((prev) => {
+      const newTasks = prev.tasks.map((t) => {
+        if (
+          t.taskReferenceName === forkTaskRef &&
+          (t.type === "FORK_JOIN" || t.type === "FORK_JOIN_DYNAMIC" || t.type === "DYNAMIC_FORK")
+        ) {
+          const updatedTask = { ...t }
+          const forkTasks = [...(updatedTask.forkTasks || [])]
+          forkTasks.splice(branchIndex, 1) // Remove branch at index
+          updatedTask.forkTasks = forkTasks
+          return updatedTask
+        }
+        return t
+      })
+      return { ...prev, tasks: newTasks }
+    })
+  }, [])
+
+  const addDecisionCase = useCallback((decisionTaskRef: string) => {
+    setWorkflow((prev) => {
+      const newTasks = prev.tasks.map((t) => {
+        if (t.taskReferenceName === decisionTaskRef && (t.type === "DECISION" || t.type === "SWITCH")) {
+          const updatedTask = { ...t }
+          const existingCases = Object.keys(updatedTask.decisionCases || {})
+          const newCaseKey = `case_${existingCases.length + 1}`
+          updatedTask.decisionCases = {
+            ...updatedTask.decisionCases,
+            [newCaseKey]: [],
+          }
+          return updatedTask
+        }
+        return t
+      })
+      return { ...prev, tasks: newTasks }
+    })
+  }, [])
+
+  const removeDecisionCase = useCallback((decisionTaskRef: string, caseKey: string) => {
+    setWorkflow((prev) => {
+      const newTasks = prev.tasks.map((t) => {
+        if (t.taskReferenceName === decisionTaskRef && (t.type === "DECISION" || t.type === "SWITCH")) {
+          const updatedTask = { ...t }
+          if (caseKey === "default") {
+            updatedTask.defaultCase = []
+          } else {
+            const { [caseKey]: removed, ...remainingCases } = updatedTask.decisionCases || {}
+            updatedTask.decisionCases = remainingCases
+          }
+          return updatedTask
+        }
+        return t
+      })
+      return { ...prev, tasks: newTasks }
+    })
+  }, [])
+
   return (
     <WorkflowContext.Provider
       value={{
@@ -161,6 +265,10 @@ export function WorkflowProvider({
         showConfirmation,
         addTaskToBranch,
         addTaskToForkBranch,
+        addForkBranch,
+        removeForkBranch,
+        addDecisionCase,
+        removeDecisionCase,
       }}
     >
       {children}

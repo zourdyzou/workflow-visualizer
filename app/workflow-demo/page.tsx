@@ -14,7 +14,7 @@ const sampleWorkflow: ConductorWorkflow = {
     {
       name: "validate_order",
       taskReferenceName: "validate_ref",
-      type: "SIMPLE",
+      type: "WORKER",
       inputParameters: {
         orderId: "${workflow.input.orderId}",
         amount: "${workflow.input.amount}",
@@ -52,7 +52,7 @@ const sampleWorkflow: ConductorWorkflow = {
     {
       name: "check_inventory",
       taskReferenceName: "inventory_ref",
-      type: "SIMPLE",
+      type: "WORKER",
       inputParameters: {
         productIds: "${workflow.input.productIds}",
         quantities: "${workflow.input.quantities}",
@@ -60,7 +60,7 @@ const sampleWorkflow: ConductorWorkflow = {
       forkTasks: [
         {
           taskReferenceName: "inventory_check_1",
-          type: "SIMPLE",
+          type: "WORKER",
           inputParameters: {
             productId: "${workflow.input.productIds[0]}",
             quantity: "${workflow.input.quantities[0]}",
@@ -68,7 +68,7 @@ const sampleWorkflow: ConductorWorkflow = {
         },
         {
           taskReferenceName: "inventory_check_2",
-          type: "SIMPLE",
+          type: "WORKER",
           inputParameters: {
             productId: "${workflow.input.productIds[1]}",
             quantity: "${workflow.input.quantities[1]}",
@@ -79,7 +79,7 @@ const sampleWorkflow: ConductorWorkflow = {
     {
       name: "schedule_shipping",
       taskReferenceName: "shipping_ref",
-      type: "SIMPLE",
+      type: "WORKER",
       inputParameters: {
         orderId: "${workflow.input.orderId}",
         address: "${workflow.input.shippingAddress}",

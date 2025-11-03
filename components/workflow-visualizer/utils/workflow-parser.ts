@@ -25,7 +25,7 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
 
   // Process tasks
   let previousNodeId = "start"
-  const branchEndNodes: { nodeId: string; y: number }[] = []
+  const branchEndNodes: { nodeId: string; y: number; branchIndex?: number }[] = []
 
   workflow.tasks.forEach((task, index) => {
     const nodeId = task.taskReferenceName || `task_${index}`
@@ -53,15 +53,20 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
     nodes.push(node)
 
     if (branchEndNodes.length > 0) {
-      // Connect all branch ends to this node
       branchEndNodes.forEach((branchEnd) => {
-        edges.push({
+        const edge: Edge = {
           id: `${branchEnd.nodeId}-${nodeId}`,
           source: branchEnd.nodeId,
           target: nodeId,
           type: "smoothstep",
           animated: false,
-        })
+        }
+
+        if (task.type === "JOIN" && branchEnd.branchIndex !== undefined) {
+          edge.targetHandle = `branch-${branchEnd.branchIndex}`
+        }
+
+        edges.push(edge)
       })
       branchEndNodes.length = 0
     } else {
@@ -82,7 +87,7 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
     if (task.type === "FORK_JOIN" || task.type === "FORK_JOIN_DYNAMIC") {
       const forkTasks = task.forkTasks || []
       const branchCount = forkTasks.length
-      let maxBranchY = branchStartY + VERTICAL_SPACING // Start from after the fork node
+      let maxBranchY = branchStartY + VERTICAL_SPACING
 
       forkTasks.forEach((forkBranch: ConductorTask[], branchIndex: number) => {
         if (!forkBranch || forkBranch.length === 0) {
@@ -136,8 +141,7 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
           branchY += VERTICAL_SPACING
         })
 
-        // Track branch end for convergence
-        branchEndNodes.push({ nodeId: lastNodeInBranch, y: branchY })
+        branchEndNodes.push({ nodeId: lastNodeInBranch, y: branchY, branchIndex })
         maxBranchY = Math.max(maxBranchY, branchY)
       })
 
@@ -148,7 +152,7 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
       const decisionCases = task.decisionCases || {}
       const caseKeys = Object.keys(decisionCases).concat(["default"])
       const caseCount = caseKeys.length
-      let maxBranchY = branchStartY + VERTICAL_SPACING // Start from after the decision node
+      let maxBranchY = branchStartY + VERTICAL_SPACING
 
       caseKeys.forEach((caseKey, caseIndex) => {
         const caseTasks = caseKey === "default" ? task.defaultCase || [] : decisionCases[caseKey]
@@ -203,7 +207,6 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
           caseY += VERTICAL_SPACING
         })
 
-        // Track case end for convergence
         branchEndNodes.push({ nodeId: lastNodeInCase, y: caseY })
         maxBranchY = Math.max(maxBranchY, caseY)
       })
@@ -245,7 +248,7 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
 
 function getNodeType(taskType: string): string {
   switch (taskType) {
-    case "SIMPLE":
+    case "WORKER":
       return "workerTask"
     case "HTTP":
       return "httpTask"
@@ -259,8 +262,11 @@ function getNodeType(taskType: string): string {
       return "decision"
     case "FORK_JOIN":
     case "FORK_JOIN_DYNAMIC":
-    case "DYNAMIC_FORK":
       return "fork"
+    case "JSON_JQ_TRANSFORM":
+      return "jsonJq"
+    case "DYNAMIC_FORK":
+      return "dynamicFork"
     case "JOIN":
       return "join"
     case "TERMINATE":

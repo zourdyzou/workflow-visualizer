@@ -10,6 +10,7 @@ import { Pencil, CirclePlus, Trash2, ChevronsRight } from "lucide-react"
 import { useState, useEffect } from "react"
 import type { ConductorWorkflow } from "./types/conductor-types"
 import { useWorkflow } from "./context/workflow-context"
+import CodeEditor from "@uiw/react-textarea-code-editor"
 
 interface WorkflowFormPanelProps {
   workflow: ConductorWorkflow
@@ -187,17 +188,20 @@ function WorkflowForm({ workflow }: { workflow: ConductorWorkflow }) {
 
 function TaskForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
   const fullTask = task.task || task
-  const taskType = task.taskType || "SIMPLE"
+  const taskType = task.taskType || "WORKER"
 
   return (
     <div className="space-y-4">
-      {taskType === "SIMPLE" && <SimpleTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
+      {taskType === "WORKER" && <SimpleTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
       {taskType === "HTTP" && <HttpTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
       {taskType === "EVENT" && <EventTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
       {taskType === "START_WORKFLOW" && <StartWorkflowTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
-      {taskType === "WORKER_TASK" && <SimpleTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
       {taskType === "DECISION" && <DecisionTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
       {taskType === "FORK_JOIN" && <ForkJoinTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
+      {taskType === "JSON_JQ_TRANSFORM" && (
+        <JsonJqTransformForm task={fullTask} taskReferenceName={taskReferenceName} />
+      )}
+      {taskType === "DYNAMIC_FORK" && <DynamicForkForm task={fullTask} taskReferenceName={taskReferenceName} />}
     </div>
   )
 }
@@ -1147,6 +1151,131 @@ function ForkJoinTaskForm({ task, taskReferenceName }: { task: any; taskReferenc
             </div>
           )}
         </div>
+      </div>
+    </>
+  )
+}
+
+function JsonJqTransformForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
+  const { updateTask } = useWorkflow()
+  const [taskName, setTaskName] = useState(task.name || "")
+  const [taskRef, setTaskRef] = useState(task.taskReferenceName || taskReferenceName)
+  const [queryExpression, setQueryExpression] = useState(task.inputParameters?.queryExpression || ".[]")
+
+  useEffect(() => {
+    updateTask(taskReferenceName, {
+      name: taskName,
+      taskReferenceName: taskRef,
+      inputParameters: {
+        ...task.inputParameters,
+        queryExpression,
+      },
+    })
+  }, [taskName, taskRef, queryExpression, taskReferenceName, updateTask, task.inputParameters])
+
+  return (
+    <>
+      <div className="space-y-2">
+        <Label htmlFor="task-name">Task Name</Label>
+        <Input id="task-name" value={taskName} onChange={(e) => setTaskName(e.target.value)} />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="task-ref">Task Reference Name</Label>
+        <Input id="task-ref" value={taskRef} onChange={(e) => setTaskRef(e.target.value)} />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="query-expression">JQ Query Expression</Label>
+        <div className="border rounded-md overflow-hidden">
+          <CodeEditor
+            value={queryExpression}
+            language="js"
+            placeholder=".[] | select(.age > 18) | .name"
+            onChange={(e) => setQueryExpression(e.target.value)}
+            padding={12}
+            style={{
+              fontSize: 13,
+              fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
+              backgroundColor: "#f9fafb",
+              minHeight: "120px",
+            }}
+          />
+        </div>
+        <p className="text-xs text-gray-500">Enter a jq expression to transform JSON data (e.g., .users[].name)</p>
+      </div>
+    </>
+  )
+}
+
+function DynamicForkForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
+  const { updateTask } = useWorkflow()
+  const [taskName, setTaskName] = useState(task.name || "")
+  const [taskRef, setTaskRef] = useState(task.taskReferenceName || taskReferenceName)
+  const [dynamicForkTasksParam, setDynamicForkTasksParam] = useState(task.dynamicForkTasksParam || "dynamicTasks")
+  const [dynamicForkTasksInputParamName, setDynamicForkTasksInputParamName] = useState(
+    task.dynamicForkTasksInputParamName || "dynamicTasksInput",
+  )
+
+  useEffect(() => {
+    updateTask(taskReferenceName, {
+      name: taskName,
+      taskReferenceName: taskRef,
+    })
+  }, [taskName, taskRef, taskReferenceName, updateTask])
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      updateTask(taskReferenceName, {
+        dynamicForkTasksParam,
+        dynamicForkTasksInputParamName,
+      })
+    }, 300)
+
+    return () => clearTimeout(timeoutId)
+  }, [dynamicForkTasksParam, dynamicForkTasksInputParamName, taskReferenceName, updateTask])
+
+  return (
+    <>
+      <div className="space-y-2">
+        <Label htmlFor="task-name">Task Name</Label>
+        <Input id="task-name" value={taskName} onChange={(e) => setTaskName(e.target.value)} />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="task-ref">Task Reference Name</Label>
+        <Input id="task-ref" value={taskRef} onChange={(e) => setTaskRef(e.target.value)} />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="dynamic-tasks-param">Dynamic Tasks Parameter</Label>
+        <Input
+          id="dynamic-tasks-param"
+          value={dynamicForkTasksParam}
+          onChange={(e) => setDynamicForkTasksParam(e.target.value)}
+          placeholder="dynamicTasks"
+        />
+        <p className="text-xs text-gray-500">Name of the input parameter containing the array of tasks to fork</p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="dynamic-tasks-input-param">Dynamic Tasks Input Parameter</Label>
+        <Input
+          id="dynamic-tasks-input-param"
+          value={dynamicForkTasksInputParamName}
+          onChange={(e) => setDynamicForkTasksInputParamName(e.target.value)}
+          placeholder="dynamicTasksInput"
+        />
+        <p className="text-xs text-gray-500">
+          Name of the input parameter containing the map of inputs for each forked task
+        </p>
+      </div>
+
+      <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+        <p className="text-xs text-blue-800">
+          <strong>Note:</strong> The number of branches and their tasks are determined at runtime based on the input
+          parameters provided by a preceding task.
+        </p>
       </div>
     </>
   )

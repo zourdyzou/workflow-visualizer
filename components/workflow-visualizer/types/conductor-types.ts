@@ -39,4 +39,9 @@ export interface ConductorTask {
   dynamicTaskNameParam?: string
   dynamicForkTasksParam?: string
   dynamicForkTasksInputParamName?: string
+  forkTaskName?: string
+  forkTaskInputs?: any[]
+  forkTaskWorkflow?: string
+  forkTaskWorkflowVersion?: number
+  queryExpression?: string
 }

@@ -2,9 +2,8 @@
 import { Handle, Position } from "@xyflow/react"
 import type React from "react"
 import { memo } from "react"
-import { GitFork, X, Plus } from "lucide-react"
+import { GitFork, X, Plus, Minus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { TaskSelectionPopover } from "../task-selection-popover"
 import { useWorkflow } from "../context/workflow-context"
 
 interface ForkNodeProps {
@@ -19,7 +18,7 @@ interface ForkNodeProps {
 }
 
 export const ForkNode = memo(function ForkNode({ data, id }: ForkNodeProps) {
-  const { removeTask, showConfirmation } = useWorkflow()
+  const { removeTask, showConfirmation, removeForkBranch, addForkBranch } = useWorkflow()
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -37,13 +36,42 @@ export const ForkNode = memo(function ForkNode({ data, id }: ForkNodeProps) {
     })
   }
 
+  const handleAddBranch = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    addForkBranch(data.taskReferenceName)
+  }
+
+  const handleRemoveBranch = (e: React.MouseEvent, branchIndex: number) => {
+    e.stopPropagation()
+    showConfirmation({
+      title: "Remove Branch",
+      description: `Are you sure you want to remove Branch ${branchIndex + 1}? This will delete all tasks in this branch.`,
+      onConfirm: () => {
+        removeForkBranch(data.taskReferenceName, branchIndex)
+      },
+      confirmText: "Remove",
+      cancelText: "Cancel",
+    })
+  }
+
   const branchCount = data.branchCount || 2
 
+  const getHandlePosition = (index: number, total: number) => {
+    if (total === 1) return "50%"
+    if (total === 2) {
+      // For 2 branches, use 25% and 75% for wide spacing
+      return index === 0 ? "25%" : "75%"
+    }
+    // For 3+ branches, distribute evenly with padding on edges
+    const spacing = 80 / (total - 1) // Use 80% of width (10% padding on each side)
+    return `${10 + spacing * index}%`
+  }
+
   return (
-    <div className="relative">
+    <div className="group relative pb-1">
       <Handle type="target" position={Position.Top} className="!bg-gray-400" />
 
-      <div className="group relative min-w-[280px] rounded-lg border-2 border-blue-500 bg-blue-50 p-4 shadow-lg transition-shadow hover:shadow-xl">
+      <div className="relative min-w-[280px] rounded-lg border-2 border-blue-500 bg-blue-50 p-4 shadow-lg transition-shadow hover:shadow-xl">
         {/* Delete button */}
         <Button
           size="icon"
@@ -68,33 +96,55 @@ export const ForkNode = memo(function ForkNode({ data, id }: ForkNodeProps) {
 
           <span className="rounded bg-blue-500 px-2.5 py-1 text-xs font-medium text-white">FORK</span>
         </div>
-
-        <div className="absolute -bottom-4 left-1/2 z-10 -translate-x-1/2">
-          <TaskSelectionPopover nodeId={id}>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 rounded-full border-2 border-gray-300 bg-white p-0 opacity-0 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50 group-hover:opacity-100"
-            >
-              <Plus className="h-4 w-4 text-gray-600" />
-            </Button>
-          </TaskSelectionPopover>
-        </div>
       </div>
 
-      {/* Multiple output handles for branches */}
-      {Array.from({ length: branchCount }).map((_, index) => (
-        <Handle
-          key={`branch-${index}`}
-          type="source"
-          position={Position.Bottom}
-          id={`branch-${index}`}
-          className="!bg-blue-500"
-          style={{
-            left: `${((index + 1) / (branchCount + 1)) * 100}%`,
-          }}
-        />
-      ))}
+      {Array.from({ length: branchCount }).map((_, index) => {
+        const position = getHandlePosition(index, branchCount)
+        return (
+          <div
+            key={`branch-${index}`}
+            className="absolute flex flex-col items-center gap-0.5"
+            style={{
+              left: position,
+              top: "100%",
+              transform: "translateX(-50%)",
+              marginTop: "-8px", // Using negative margin to pull handles up closer to node
+            }}
+          >
+            {/* Branch handle - tiny, subtle blue dot */}
+            <Handle
+              type="source"
+              position={Position.Bottom}
+              id={`branch-${index}`}
+              className="!relative !left-0 !top-0 !h-1 !w-1 !translate-x-0 !translate-y-0 !rounded-full !border !border-blue-600 !bg-blue-500"
+            />
+
+            {/* Control buttons below the handle */}
+            <div className="flex gap-1">
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={handleAddBranch}
+                className="h-6 w-6 rounded-full border border-gray-300 bg-white p-0 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50"
+                title="Add branch"
+              >
+                <Plus className="h-3 w-3 text-gray-600" />
+              </Button>
+              {branchCount > 1 && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={(e) => handleRemoveBranch(e, index)}
+                  className="h-6 w-6 rounded-full border border-gray-300 bg-white p-0 shadow-sm transition-all hover:border-red-400 hover:bg-red-50"
+                  title={`Remove Branch ${index + 1}`}
+                >
+                  <Minus className="h-3 w-3 text-gray-600" />
+                </Button>
+              )}
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 })
