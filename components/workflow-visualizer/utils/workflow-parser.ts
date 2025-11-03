@@ -25,7 +25,7 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
 
   // Process tasks
   let previousNodeId = "start"
-  const branchEndNodes: { nodeId: string; y: number; branchIndex?: number }[] = []
+  const branchEndNodes: { nodeId: string; y: number; branchIndex?: number; sourceHandle?: string }[] = []
 
   workflow.tasks.forEach((task, index) => {
     const nodeId = task.taskReferenceName || `task_${index}`
@@ -60,6 +60,10 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
           target: nodeId,
           type: "smoothstep",
           animated: false,
+        }
+
+        if (branchEnd.sourceHandle) {
+          edge.sourceHandle = branchEnd.sourceHandle
         }
 
         if (task.type === "JOIN" && branchEnd.branchIndex !== undefined) {

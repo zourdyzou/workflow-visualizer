@@ -21,7 +21,13 @@ interface HttpTaskNodeProps {
 }
 
 export const HttpTaskNode = memo(function HttpTaskNode({ data, id }: HttpTaskNodeProps) {
-  const { removeTask, showConfirmation } = useWorkflow()
+  const { removeTask, showConfirmation, getTask } = useWorkflow()
+
+  const latestTask = getTask(data.taskReferenceName)
+  const httpRequest = latestTask?.inputParameters?.http_request || {}
+  const method = httpRequest.method || data.method
+  const url = httpRequest.uri || data.url
+  const taskName = latestTask?.name || data.label
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -61,7 +67,7 @@ export const HttpTaskNode = memo(function HttpTaskNode({ data, id }: HttpTaskNod
               <Globe className="h-5 w-5 text-gray-700" />
             </div>
             <div className="flex-1">
-              <div className="font-semibold text-gray-900">{data.label}</div>
+              <div className="font-semibold text-gray-900">{taskName}</div>
               <div className="text-sm text-gray-400">{data.taskReferenceName}</div>
             </div>
           </div>
@@ -70,17 +76,17 @@ export const HttpTaskNode = memo(function HttpTaskNode({ data, id }: HttpTaskNod
         </div>
 
         {/* HTTP details */}
-        {(data.method || data.url) && (
+        {(method || url) && (
           <div className="mt-3 flex items-center gap-2 border-t border-gray-100 pt-3">
-            {data.method && (
+            {method && (
               <Badge variant="secondary" className="bg-gray-100 text-xs font-medium text-gray-700">
-                {data.method}
+                {method}
               </Badge>
             )}
-            {data.url && (
+            {url && (
               <div className="flex items-center gap-1 text-xs text-blue-600">
                 <LinkIcon className="h-3 w-3" />
-                <span className="truncate">{data.url}</span>
+                <span className="truncate">{url}</span>
               </div>
             )}
           </div>
