@@ -198,6 +198,7 @@ function TaskForm({ task, taskReferenceName }: { task: any; taskReferenceName: s
       {taskType === "START_WORKFLOW" && <StartWorkflowTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
       {taskType === "DECISION" && <DecisionTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
       {taskType === "FORK_JOIN" && <ForkJoinTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
+      {taskType === "JOIN" && <JoinTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
       {taskType === "JSON_JQ_TRANSFORM" && (
         <JsonJqTransformForm task={fullTask} taskReferenceName={taskReferenceName} />
       )}
@@ -1277,6 +1278,85 @@ function DynamicForkForm({ task, taskReferenceName }: { task: any; taskReference
           parameters provided by a preceding task.
         </p>
       </div>
+    </>
+  )
+}
+
+function JoinTaskForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
+  const { getTask } = useWorkflow()
+
+  // Get the latest task data from the workflow context
+  const latestTask = getTask(taskReferenceName) || task
+
+  // Extract the fork reference name from the join task reference name
+  // JOIN tasks are typically named like "fork_0_join", so we extract "fork_0"
+  const forkReferenceName = latestTask.taskReferenceName?.replace(/_join$/, "") || ""
+  const forkTask = getTask(forkReferenceName)
+
+  const joinOn = latestTask.joinOn || []
+  const numBranches = Array.isArray(joinOn) ? joinOn.length : 0
+
+  return (
+    <>
+      <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 mb-4">
+        <p className="text-sm text-purple-800">
+          <strong>Note:</strong> JOIN tasks are automatically created and managed by the system. They wait for all
+          branches of a FORK to complete before continuing the workflow.
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="task-name">Task Name</Label>
+        <Input id="task-name" value={latestTask.name || ""} disabled className="bg-gray-50" />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="task-ref">Task Reference Name</Label>
+        <Input
+          id="task-ref"
+          value={latestTask.taskReferenceName || taskReferenceName}
+          disabled
+          className="bg-gray-50"
+        />
+      </div>
+
+      {forkReferenceName && (
+        <div className="space-y-2">
+          <Label htmlFor="fork-ref">Joins From Fork</Label>
+          <Input id="fork-ref" value={forkReferenceName} disabled className="bg-gray-50" />
+          {forkTask && (
+            <p className="text-xs text-gray-500">
+              Fork task: <span className="font-mono">{forkTask.name}</span>
+            </p>
+          )}
+        </div>
+      )}
+
+      <div className="space-y-2">
+        <Label htmlFor="num-branches">Number of Branches</Label>
+        <Input id="num-branches" value={numBranches} disabled className="bg-gray-50" />
+        <p className="text-xs text-gray-500">
+          This JOIN task waits for {numBranches} branch{numBranches !== 1 ? "es" : ""} to complete
+        </p>
+      </div>
+
+      {joinOn.length > 0 && (
+        <div className="space-y-3">
+          <div className="text-sm font-medium text-gray-700">Join On (Branch References)</div>
+
+          <div className="border border-dashed border-gray-300 rounded-md p-4">
+            <div className="space-y-2">
+              {joinOn.map((ref: string, index: number) => (
+                <div key={index} className="text-sm text-gray-600 flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                  <span className="font-mono text-xs">{ref}</span>
+                  <span className="text-gray-400">(Branch {index + 1})</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
