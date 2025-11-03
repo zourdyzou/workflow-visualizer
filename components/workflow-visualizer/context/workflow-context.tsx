@@ -70,8 +70,8 @@ export function WorkflowProvider({
           joinOn: [task.taskReferenceName],
         }
 
-        if (!afterTaskRef) {
-          return { ...prev, tasks: [...prev.tasks, task, joinTask] }
+        if (!afterTaskRef || afterTaskRef === "start") {
+          return { ...prev, tasks: [task, joinTask, ...prev.tasks] }
         }
 
         const afterIndex = prev.tasks.findIndex((t) => t.taskReferenceName === afterTaskRef)
@@ -84,9 +84,8 @@ export function WorkflowProvider({
         return { ...prev, tasks: newTasks }
       }
 
-      // Original logic for non-FORK tasks
-      if (!afterTaskRef) {
-        return { ...prev, tasks: [...prev.tasks, task] }
+      if (!afterTaskRef || afterTaskRef === "start") {
+        return { ...prev, tasks: [task, ...prev.tasks] }
       }
 
       const afterIndex = prev.tasks.findIndex((t) => t.taskReferenceName === afterTaskRef)

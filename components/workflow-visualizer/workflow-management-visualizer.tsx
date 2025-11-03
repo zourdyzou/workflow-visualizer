@@ -464,7 +464,7 @@ export function WorkflowManagementVisualizer({
 
       const afterTaskRef = afterNode.data?.taskReferenceName
       console.log("[v0] Adding task to workflow context after:", afterTaskRef)
-      addTask(taskData, afterTaskRef)
+      addTask(taskData, afterTaskRef || (afterNodeId === "start" ? "start" : undefined))
 
       const newNode = {
         id: newNodeId,
