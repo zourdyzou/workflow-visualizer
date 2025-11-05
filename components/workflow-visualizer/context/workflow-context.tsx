@@ -42,19 +42,134 @@ export function WorkflowProvider({
   const [confirmationConfig, setConfirmationConfig] = useState<ConfirmationConfig | null>(null)
 
   const updateTask = useCallback((taskReferenceName: string, updates: Partial<ConductorTask>) => {
-    setWorkflow((prev) => ({
-      ...prev,
-      tasks: prev.tasks.map((task) => (task.taskReferenceName === taskReferenceName ? { ...task, ...updates } : task)),
-    }))
+    console.log("[v0] updateTask called:", { taskReferenceName, updates })
+
+    setWorkflow((prev) => {
+      // Helper function to update a task recursively
+      const updateTaskRecursive = (task: ConductorTask): ConductorTask => {
+        // If this is the task we're looking for, update it
+        if (task.taskReferenceName === taskReferenceName) {
+          console.log("[v0] Found and updating task:", taskReferenceName)
+          return { ...task, ...updates }
+        }
+
+        // Check fork branches
+        if (task.forkTasks && Array.isArray(task.forkTasks)) {
+          const updatedForkTasks = task.forkTasks.map((branch) => {
+            if (Array.isArray(branch)) {
+              return branch.map(updateTaskRecursive)
+            }
+            return branch
+          })
+
+          // Only update if something changed
+          if (JSON.stringify(updatedForkTasks) !== JSON.stringify(task.forkTasks)) {
+            console.log("[v0] Updated task in fork branch")
+            return { ...task, forkTasks: updatedForkTasks }
+          }
+        }
+
+        // Check decision cases
+        if (task.decisionCases) {
+          let casesUpdated = false
+          const updatedDecisionCases: Record<string, ConductorTask[]> = {}
+
+          for (const [caseKey, caseTasks] of Object.entries(task.decisionCases)) {
+            const updatedCaseTasks = caseTasks.map(updateTaskRecursive)
+            updatedDecisionCases[caseKey] = updatedCaseTasks
+
+            if (JSON.stringify(updatedCaseTasks) !== JSON.stringify(caseTasks)) {
+              casesUpdated = true
+            }
+          }
+
+          // Check default case
+          let updatedDefaultCase = task.defaultCase
+          if (task.defaultCase && Array.isArray(task.defaultCase)) {
+            updatedDefaultCase = task.defaultCase.map(updateTaskRecursive)
+            if (JSON.stringify(updatedDefaultCase) !== JSON.stringify(task.defaultCase)) {
+              casesUpdated = true
+            }
+          }
+
+          if (casesUpdated) {
+            console.log("[v0] Updated task in decision case")
+            return {
+              ...task,
+              decisionCases: updatedDecisionCases,
+              defaultCase: updatedDefaultCase,
+            }
+          }
+        }
+
+        return task
+      }
+
+      return {
+        ...prev,
+        tasks: prev.tasks.map(updateTaskRecursive),
+      }
+    })
   }, [])
 
   const updateWorkflow = useCallback((updates: Partial<ConductorWorkflow>) => {
-    setWorkflow((prev) => ({ ...prev, ...updates }))
+    if (updates.tasks !== undefined) {
+      setWorkflow((prev) => ({ ...prev, ...updates }))
+    } else {
+      setWorkflow((prev) => ({ ...prev, ...updates }))
+    }
   }, [])
 
   const getTask = useCallback(
-    (taskReferenceName: string) => {
-      return workflow.tasks.find((task) => task.taskReferenceName === taskReferenceName)
+    (taskReferenceName: string): ConductorTask | undefined => {
+      // Helper function to recursively search for a task
+      const findTaskRecursive = (task: ConductorTask): ConductorTask | undefined => {
+        if (task.taskReferenceName === taskReferenceName) {
+          return task
+        }
+
+        // Search in forkTasks
+        if (task.forkTasks && Array.isArray(task.forkTasks)) {
+          for (const branch of task.forkTasks) {
+            if (Array.isArray(branch)) {
+              for (const forkTask of branch) {
+                const found = findTaskRecursive(forkTask)
+                if (found) return found
+              }
+            }
+          }
+        }
+
+        // Search in decisionCases
+        if (task.decisionCases) {
+          for (const caseTasks of Object.values(task.decisionCases)) {
+            if (Array.isArray(caseTasks)) {
+              for (const caseTask of caseTasks) {
+                const found = findTaskRecursive(caseTask)
+                if (found) return found
+              }
+            }
+          }
+        }
+
+        // Search in defaultCase
+        if (task.defaultCase && Array.isArray(task.defaultCase)) {
+          for (const defaultTask of task.defaultCase) {
+            const found = findTaskRecursive(defaultTask)
+            if (found) return found
+          }
+        }
+
+        return undefined
+      }
+
+      // Search through all top-level tasks
+      for (const task of workflow.tasks) {
+        const found = findTaskRecursive(task)
+        if (found) return found
+      }
+
+      return undefined
     },
     [workflow.tasks],
   )

@@ -9,6 +9,24 @@ export const metadata: Metadata = {
   generator: "v0.app",
 }
 
+function ErrorSuppression() {
+  return (
+    <script
+      dangerouslySetInnerHTML={{
+        __html: `
+          // Suppress ResizeObserver loop errors (benign React Flow warnings)
+          window.addEventListener('error', function(e) {
+            if (e.message === 'ResizeObserver loop completed with undelivered notifications.' ||
+                e.message === 'ResizeObserver loop limit exceeded') {
+              e.stopImmediatePropagation();
+            }
+          });
+        `,
+      }}
+    />
+  )
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -16,6 +34,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <ErrorSuppression />
+      </head>
       <body className={`font-sans antialiased`}>
         {children}
         <Analytics />
