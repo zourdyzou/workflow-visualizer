@@ -113,11 +113,7 @@ export function WorkflowProvider({
   }, [])
 
   const updateWorkflow = useCallback((updates: Partial<ConductorWorkflow>) => {
-    if (updates.tasks !== undefined) {
-      setWorkflow((prev) => ({ ...prev, ...updates }))
-    } else {
-      setWorkflow((prev) => ({ ...prev, ...updates }))
-    }
+    setWorkflow((prev) => ({ ...prev, ...updates }))
   }, [])
 
   const getTask = useCallback(

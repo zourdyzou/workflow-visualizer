@@ -21,7 +21,6 @@ import { parseWorkflowToReactFlow } from "./utils/workflow-parser"
 import { useWorkflow } from "./context/workflow-context"
 import { WorkflowBranchSelectionDialog } from "./context/workflow-branch-selection-dialog"
 import type { ConductorWorkflow } from "./types/conductor-types"
-import { TooltipProvider } from "@/components/ui/tooltip"
 
 const nodeTypes = {
   simpleTask: SimpleTaskNode,
@@ -42,16 +41,12 @@ interface WorkflowManagementVisualizerProps {
   workflow: ConductorWorkflow
   className?: string
   onNodeClick?: (node: any) => void
-  onEditWorkflow?: () => void
-  onCreateEmptyWorkflow?: () => void
 }
 
 export function WorkflowManagementVisualizer({
   workflow,
   className = "",
   onNodeClick,
-  onEditWorkflow,
-  onCreateEmptyWorkflow,
 }: WorkflowManagementVisualizerProps) {
   const { workflow: contextWorkflow, addTask, addTaskToBranch, addTaskToForkBranch } = useWorkflow()
 
@@ -735,41 +730,39 @@ export function WorkflowManagementVisualizer({
   )
 
   return (
-    <TooltipProvider>
-      <div className={`h-full w-full ${className}`}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={handleNodesChange}
-          onEdgesChange={onEdgesChange}
-          onNodeClick={handleNodeClick}
-          nodeTypes={nodeTypes}
-          fitView
-          minZoom={0.1}
-          maxZoom={1.5}
-          defaultEdgeOptions={defaultEdgeOptions}
-          nodesDraggable={true}
-          nodesConnectable={false}
-          elementsSelectable={true}
-          selectNodesOnDrag={false}
-          onInit={(reactFlowInstance) => {
-            ;(window as any).__addNodeAfter = addNodeAfter
-            ;(window as any).__removeNode = removeNode
-          }}
-        >
-          <Background color="#64748b" gap={16} size={1.5} variant="dots" />
-          <Controls />
-        </ReactFlow>
+    <div className={`h-full w-full ${className}`}>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={handleNodesChange}
+        onEdgesChange={onEdgesChange}
+        onNodeClick={handleNodeClick}
+        nodeTypes={nodeTypes}
+        fitView
+        minZoom={0.1}
+        maxZoom={1.5}
+        defaultEdgeOptions={defaultEdgeOptions}
+        nodesDraggable={true}
+        nodesConnectable={false}
+        elementsSelectable={true}
+        selectNodesOnDrag={false}
+        onInit={(reactFlowInstance) => {
+          ;(window as any).__addNodeAfter = addNodeAfter
+          ;(window as any).__removeNode = removeNode
+        }}
+      >
+        <Background color="#64748b" gap={16} size={1.5} variant="dots" />
+        <Controls />
+      </ReactFlow>
 
-        {branchSelection && (
-          <WorkflowBranchSelectionDialog
-            isOpen={branchSelection.isOpen}
-            branches={branchSelection.branches}
-            onSelect={handleBranchSelect}
-            onCancel={() => setBranchSelection(null)}
-          />
-        )}
-      </div>
-    </TooltipProvider>
+      {branchSelection && (
+        <WorkflowBranchSelectionDialog
+          isOpen={branchSelection.isOpen}
+          branches={branchSelection.branches}
+          onSelect={handleBranchSelect}
+          onCancel={() => setBranchSelection(null)}
+        />
+      )}
+    </div>
   )
 }

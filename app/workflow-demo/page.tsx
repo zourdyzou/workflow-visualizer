@@ -112,7 +112,7 @@ const sampleWorkflow: ConductorWorkflow = {
 function WorkflowDemoContent() {
   const [selectedNode, setSelectedNode] = useState<any>(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
-  const { workflow, exportWorkflow, updateWorkflow } = useWorkflow()
+  const { workflow, exportWorkflow } = useWorkflow()
 
   const handleSave = () => {
     const conductorWorkflow = exportWorkflow()
@@ -126,53 +126,6 @@ function WorkflowDemoContent() {
     setIsPanelOpen(false)
   }
 
-  const handleEditWorkflow = () => {
-    setSelectedNode({ type: "workflow" })
-    setIsPanelOpen(true)
-  }
-
-  const handleCreateEmptyWorkflow = () => {
-    const emptyWorkflow: ConductorWorkflow = {
-      name: "new_workflow",
-      description: "New workflow created from scratch",
-      version: 1,
-      tasks: [],
-      inputParameters: [],
-      outputParameters: {},
-      schemaVersion: 2,
-      restartable: true,
-      workflowStatusListenerEnabled: false,
-      timeoutSeconds: 3600,
-      timeoutPolicy: "ALERT_ONLY",
-    }
-
-    updateWorkflow(emptyWorkflow)
-    setSelectedNode(null)
-    setIsPanelOpen(false)
-    console.log("[v0] Created empty workflow")
-  }
-
-  const handleNewWorkflow = () => {
-    const emptyWorkflow: ConductorWorkflow = {
-      name: "new_workflow",
-      description: "New workflow created from scratch",
-      version: 1,
-      tasks: [],
-      inputParameters: [],
-      outputParameters: {},
-      schemaVersion: 2,
-      restartable: true,
-      workflowStatusListenerEnabled: false,
-      timeoutSeconds: 3600,
-      timeoutPolicy: "ALERT_ONLY",
-    }
-
-    updateWorkflow(emptyWorkflow)
-    setSelectedNode(null)
-    setIsPanelOpen(false)
-    console.log("[v0] Created empty workflow")
-  }
-
   return (
     <div className="flex h-screen">
       <div className="flex-1 flex flex-col">
@@ -182,8 +135,6 @@ function WorkflowDemoContent() {
             setSelectedNode(node)
             setIsPanelOpen(true)
           }}
-          onEditWorkflow={handleEditWorkflow}
-          onCreateEmptyWorkflow={handleCreateEmptyWorkflow}
         />
       </div>
 
@@ -194,7 +145,6 @@ function WorkflowDemoContent() {
         onOpenChange={setIsPanelOpen}
         onSave={handleSave}
         onCancel={handleCancel}
-        onNewWorkflow={handleNewWorkflow}
       />
     </div>
   )
