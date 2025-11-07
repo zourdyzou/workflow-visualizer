@@ -172,7 +172,7 @@ export function WorkflowProvider({
 
   const addTask = useCallback((task: ConductorTask, afterTaskRef?: string) => {
     setWorkflow((prev) => {
-      if (task.type === "FORK_JOIN") {
+      if (task.type === "FORK_JOIN" || task.type === "DYNAMIC_FORK") {
         const joinTask: ConductorTask = {
           name: `${task.name}_join`,
           taskReferenceName: `${task.taskReferenceName}_join`,
@@ -211,10 +211,28 @@ export function WorkflowProvider({
   }, [])
 
   const removeTask = useCallback((taskReferenceName: string) => {
-    setWorkflow((prev) => ({
-      ...prev,
-      tasks: prev.tasks.filter((task) => task.taskReferenceName !== taskReferenceName),
-    }))
+    setWorkflow((prev) => {
+      const taskToDelete = prev.tasks.find((t) => t.taskReferenceName === taskReferenceName)
+
+      // If the task is a FORK_JOIN or DYNAMIC_FORK, also remove its corresponding JOIN task
+      if (taskToDelete && (taskToDelete.type === "FORK_JOIN" || taskToDelete.type === "DYNAMIC_FORK")) {
+        const joinTaskRef = `${taskReferenceName}_join`
+        console.log("[v0] Removing FORK/DYNAMIC_FORK and its JOIN task:", { taskReferenceName, joinTaskRef })
+
+        return {
+          ...prev,
+          tasks: prev.tasks.filter(
+            (task) => task.taskReferenceName !== taskReferenceName && task.taskReferenceName !== joinTaskRef,
+          ),
+        }
+      }
+
+      // For other task types, just remove the single task
+      return {
+        ...prev,
+        tasks: prev.tasks.filter((task) => task.taskReferenceName !== taskReferenceName),
+      }
+    })
   }, [])
 
   const exportWorkflow = useCallback(() => {

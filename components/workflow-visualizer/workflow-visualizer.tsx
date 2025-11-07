@@ -37,17 +37,13 @@ const nodeTypes = {
   dynamicFork: DynamicForkNode,
 }
 
-interface WorkflowManagementVisualizerProps {
+interface WorkflowVisualizerProps {
   workflow: ConductorWorkflow
   className?: string
   onNodeClick?: (node: any) => void
 }
 
-export function WorkflowManagementVisualizer({
-  workflow,
-  className = "",
-  onNodeClick,
-}: WorkflowManagementVisualizerProps) {
+export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: WorkflowVisualizerProps) {
   const { workflow: contextWorkflow, addTask, addTaskToBranch, addTaskToForkBranch } = useWorkflow()
 
   const activeWorkflow = contextWorkflow || workflow
@@ -395,6 +391,64 @@ export function WorkflowManagementVisualizer({
         return
       }
 
+      if (afterNode.data?.taskType === "DYNAMIC_FORK") {
+        const branches = ["Branch 1"]
+
+        let taskTypeName = taskType.toLowerCase()
+        if (taskType === "WORKER") taskTypeName = "worker_task"
+        else if (taskType === "FORK_JOIN") taskTypeName = "fork"
+        else if (taskType === "JOIN") taskTypeName = "join"
+        else if (taskType === "DECISION") taskTypeName = "decision"
+        else if (taskType === "JSON_JQ_TRANSFORM") taskTypeName = "json_jq"
+        else if (taskType === "DYNAMIC_FORK") taskTypeName = "dynamic_fork"
+
+        const count = countRef.current
+        const newTaskName = `${taskTypeName}_${count}`
+        const newTaskRef = `${taskTypeName}_ref_${count}`
+        countRef.current += 1
+
+        const taskData: any = {
+          name: newTaskName,
+          taskReferenceName: newTaskRef,
+          type: taskType,
+          inputParameters: {},
+        }
+
+        if (taskType === "HTTP") {
+          taskData.inputParameters = {
+            http_request: {
+              method: "GET",
+              uri: "",
+            },
+          }
+        } else if (taskType === "DECISION") {
+          taskData.decisionCases = { true: [], false: [] }
+          taskData.defaultCase = []
+        } else if (taskType === "FORK_JOIN") {
+          taskData.forkTasks = [[], []]
+        } else if (taskType === "JSON_JQ_TRANSFORM") {
+          taskData.inputParameters = {
+            queryExpression: ".[]",
+          }
+        } else if (taskType === "DYNAMIC_FORK") {
+          taskData.dynamicForkTasksParam = "dynamicTasks"
+          taskData.dynamicForkTasksInputParamName = "dynamicTasksInput"
+          taskData.inputParameters = {
+            dynamicTasks: [],
+            dynamicTasksInput: {},
+          }
+        }
+
+        setBranchSelection({
+          isOpen: true,
+          branches,
+          afterNodeId,
+          taskType,
+          taskData,
+        })
+        return
+      }
+
       let taskTypeName = taskType.toLowerCase()
       if (taskType === "WORKER") taskTypeName = "worker_task"
       else if (taskType === "FORK_JOIN") taskTypeName = "fork"
@@ -659,6 +713,10 @@ export function WorkflowManagementVisualizer({
         const branchIndex = Number.parseInt(branch.replace("Branch ", "")) - 1
         console.log("[v0] Adding task to fork branch:", { afterTaskRef, branchIndex })
         addTaskToForkBranch(taskData, afterTaskRef, branchIndex)
+      } else if (afterNode.data?.taskType === "DYNAMIC_FORK") {
+        const branchIndex = Number.parseInt(branch.replace("Branch ", "")) - 1
+        console.log("[v0] Adding task to dynamic fork branch:", { afterTaskRef, branchIndex })
+        addTaskToForkBranch(taskData, afterTaskRef, branchIndex)
       }
 
       setBranchSelection(null)
@@ -715,15 +773,18 @@ export function WorkflowManagementVisualizer({
     () => ({
       type: "smoothstep" as const,
       animated: false,
+      style: {
+        strokeWidth: 2,
+        stroke: "#64748b",
+      },
+      pathOptions: {
+        borderRadius: 20,
+      },
       markerEnd: {
         type: MarkerType.ArrowClosed,
         width: 20,
         height: 20,
         color: "#64748b",
-      },
-      style: {
-        strokeWidth: 2,
-        stroke: "#64748b",
       },
     }),
     [],

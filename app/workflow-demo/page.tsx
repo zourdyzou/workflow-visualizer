@@ -1,9 +1,5 @@
 "use client"
-
-import { useState } from "react"
-import { WorkflowManagementVisualizer } from "@/components/workflow-visualizer/workflow-management-visualizer"
-import { WorkflowFormPanel } from "@/components/workflow-visualizer/workflow-form-panel"
-import { WorkflowProvider, useWorkflow } from "@/components/workflow-visualizer/context/workflow-context"
+import { WorkflowViewerTool } from "@/components/workflow-visualizer/workflow-viewer-tool"
 import type { ConductorWorkflow } from "@/components/workflow-visualizer/types/conductor-types"
 
 const sampleWorkflow: ConductorWorkflow = {
@@ -109,51 +105,14 @@ const sampleWorkflow: ConductorWorkflow = {
   },
 }
 
-function WorkflowDemoContent() {
-  const [selectedNode, setSelectedNode] = useState<any>(null)
-  const [isPanelOpen, setIsPanelOpen] = useState(false)
-  const { workflow, exportWorkflow } = useWorkflow()
-
+export default function WorkflowDemoPage() {
   const handleSave = () => {
-    const conductorWorkflow = exportWorkflow()
-    console.log("[v0] Saved workflow in Conductor format:", JSON.stringify(conductorWorkflow, null, 2))
-    setIsPanelOpen(false)
+    console.log("[v0] Saved workflow")
   }
 
   const handleCancel = () => {
     console.log("[v0] Cancelled changes")
-    setSelectedNode(null)
-    setIsPanelOpen(false)
   }
 
-  return (
-    <div className="flex h-screen">
-      <div className="flex-1 flex flex-col">
-        <WorkflowManagementVisualizer
-          workflow={workflow}
-          onNodeClick={(node) => {
-            setSelectedNode(node)
-            setIsPanelOpen(true)
-          }}
-        />
-      </div>
-
-      <WorkflowFormPanel
-        workflow={workflow}
-        selectedNode={selectedNode}
-        isOpen={isPanelOpen}
-        onOpenChange={setIsPanelOpen}
-        onSave={handleSave}
-        onCancel={handleCancel}
-      />
-    </div>
-  )
-}
-
-export default function WorkflowDemoPage() {
-  return (
-    <WorkflowProvider initialWorkflow={sampleWorkflow}>
-      <WorkflowDemoContent />
-    </WorkflowProvider>
-  )
+  return <WorkflowViewerTool initialWorkflow={sampleWorkflow} onSave={handleSave} onCancel={handleCancel} />
 }

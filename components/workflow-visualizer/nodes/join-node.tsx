@@ -1,11 +1,9 @@
 "use client"
 import { Handle, Position } from "@xyflow/react"
-import type React from "react"
 import { memo } from "react"
-import { GitMerge, X, Plus } from "lucide-react"
+import { GitMerge, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { TaskSelectionPopover } from "../task-selection-popover"
-import { useWorkflow } from "../context/workflow-context"
 
 interface JoinNodeProps {
   data: {
@@ -19,24 +17,6 @@ interface JoinNodeProps {
 }
 
 export const JoinNode = memo(function JoinNode({ data, id }: JoinNodeProps) {
-  const { removeTask, showConfirmation } = useWorkflow()
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    showConfirmation({
-      title: "Delete Join Task",
-      description: `Are you sure you want to delete "${data.label}"?`,
-      onConfirm: () => {
-        removeTask(data.taskReferenceName)
-        if (typeof window !== "undefined" && (window as any).__removeNode) {
-          ;(window as any).__removeNode(id)
-        }
-      },
-      confirmText: "Delete",
-      cancelText: "Cancel",
-    })
-  }
-
   const branchCount = data.branchCount || 2
 
   return (
@@ -56,16 +36,6 @@ export const JoinNode = memo(function JoinNode({ data, id }: JoinNodeProps) {
       ))}
 
       <div className="group relative min-w-[280px] rounded-lg border-2 border-purple-500 bg-purple-50 p-4 shadow-lg transition-shadow hover:shadow-xl">
-        {/* Delete button */}
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={handleDelete}
-          className="absolute -right-2 -top-2 h-6 w-6 rounded-full border-2 border-red-400 bg-white p-0 opacity-0 transition-opacity hover:bg-red-50 group-hover:opacity-100"
-        >
-          <X className="h-3 w-3 text-red-500" />
-        </Button>
-
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-1 items-start gap-3">
             <div className="mt-1">

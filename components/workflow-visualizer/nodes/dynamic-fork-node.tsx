@@ -2,9 +2,8 @@
 import { Handle, Position } from "@xyflow/react"
 import type React from "react"
 import { memo } from "react"
-import { Zap, X, Plus } from "lucide-react"
+import { Zap, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { TaskSelectionPopover } from "../task-selection-popover"
 import { useWorkflow } from "../context/workflow-context"
 
 interface DynamicForkNodeProps {
@@ -64,18 +63,6 @@ export const DynamicForkNode = memo(function DynamicForkNode({ data, id }: Dynam
           </div>
 
           <span className="rounded bg-amber-500 px-2.5 py-1 text-xs font-medium text-white">DYNAMIC_FORK</span>
-        </div>
-
-        <div className="absolute -bottom-4 left-1/2 z-10 -translate-x-1/2">
-          <TaskSelectionPopover nodeId={id}>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 rounded-full border-2 border-gray-300 bg-white p-0 opacity-0 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50 group-hover:opacity-100"
-            >
-              <Plus className="h-4 w-4 text-gray-600" />
-            </Button>
-          </TaskSelectionPopover>
         </div>
       </div>
 

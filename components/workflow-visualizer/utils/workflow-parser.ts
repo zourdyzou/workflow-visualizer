@@ -60,6 +60,13 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
           target: nodeId,
           type: "smoothstep",
           animated: false,
+          style: {
+            strokeWidth: 2,
+            stroke: "#64748b",
+          },
+          pathOptions: {
+            borderRadius: 20,
+          },
         }
 
         if (branchEnd.sourceHandle) {
@@ -80,6 +87,13 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
         target: nodeId,
         type: "smoothstep",
         animated: false,
+        style: {
+          strokeWidth: 2,
+          stroke: "#64748b",
+        },
+        pathOptions: {
+          borderRadius: 20,
+        },
       })
     }
 
@@ -130,6 +144,13 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
               animated: false,
               label: `Branch ${branchIndex + 1}`,
               labelStyle: { fontSize: 10, fill: "#64748b" },
+              style: {
+                strokeWidth: 2,
+                stroke: "#64748b",
+              },
+              pathOptions: {
+                borderRadius: 20,
+              },
             })
           } else {
             edges.push({
@@ -138,6 +159,13 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
               target: forkNodeId,
               type: "smoothstep",
               animated: false,
+              style: {
+                strokeWidth: 2,
+                stroke: "#64748b",
+              },
+              pathOptions: {
+                borderRadius: 20,
+              },
             })
           }
 
@@ -196,6 +224,13 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
               label: caseKey === "default" ? "default" : `case: ${caseKey}`,
               labelStyle: { fontSize: 10, fill: "#64748b" },
               labelBgStyle: { fill: "#ffffff", fillOpacity: 0.8 },
+              style: {
+                strokeWidth: 2,
+                stroke: "#64748b",
+              },
+              pathOptions: {
+                borderRadius: 20,
+              },
             })
           } else {
             edges.push({
@@ -204,6 +239,13 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
               target: caseNodeId,
               type: "smoothstep",
               animated: false,
+              style: {
+                strokeWidth: 2,
+                stroke: "#64748b",
+              },
+              pathOptions: {
+                borderRadius: 20,
+              },
             })
           }
 
@@ -235,6 +277,13 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
         target: "end",
         type: "smoothstep",
         animated: false,
+        style: {
+          strokeWidth: 2,
+          stroke: "#64748b",
+        },
+        pathOptions: {
+          borderRadius: 20,
+        },
       })
     })
   } else {
@@ -244,6 +293,13 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
       target: "end",
       type: "smoothstep",
       animated: false,
+      style: {
+        strokeWidth: 2,
+        stroke: "#64748b",
+      },
+      pathOptions: {
+        borderRadius: 20,
+      },
     })
   }
 

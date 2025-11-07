@@ -1,8 +1,9 @@
 "use client"
 import { Handle, Position } from "@xyflow/react"
-import { Rocket, X } from "lucide-react"
+import { Rocket, X, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { TaskSelectionPopover } from "../task-selection-popover"
 
 interface StartWorkflowNodeProps {
   data: {
@@ -11,9 +12,12 @@ interface StartWorkflowNodeProps {
     taskType: string
     workflowName?: string
   }
+  id: string
 }
 
-export function StartWorkflowNode({ data }: StartWorkflowNodeProps) {
+export function StartWorkflowNode({ data, id }: StartWorkflowNodeProps) {
+  const isInBranch = id.includes("_case_") || id.includes("_fork_")
+
   return (
     <div className="relative">
       <Handle type="target" position={Position.Top} className="!bg-gray-400" />
@@ -51,16 +55,19 @@ export function StartWorkflowNode({ data }: StartWorkflowNodeProps) {
           </div>
         )}
 
-        {/* Add button at bottom */}
-        <div className="absolute -bottom-3 left-1/2 -translate-x-1/2">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-6 w-6 rounded-full border-2 border-gray-300 bg-white p-0 opacity-0 transition-opacity hover:bg-gray-50 group-hover:opacity-100"
-          >
-            <span className="text-lg font-semibold text-gray-600">+</span>
-          </Button>
-        </div>
+        {!isInBranch && (
+          <div className="absolute -bottom-4 left-1/2 z-10 -translate-x-1/2">
+            <TaskSelectionPopover nodeId={id}>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 rounded-full border-2 border-gray-300 bg-white p-0 opacity-0 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50 group-hover:opacity-100"
+              >
+                <Plus className="h-4 w-4 text-gray-600" />
+              </Button>
+            </TaskSelectionPopover>
+          </div>
+        )}
       </div>
 
       <Handle type="source" position={Position.Bottom} className="!bg-gray-400" />

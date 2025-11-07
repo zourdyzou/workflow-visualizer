@@ -1,6 +1,11 @@
 "use client"
 import { Handle, Position } from "@xyflow/react"
-import { Workflow, GitFork, GitMerge } from "lucide-react"
+import type React from "react"
+
+import { Workflow, GitFork, GitMerge, X, Plus } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { TaskSelectionPopover } from "../task-selection-popover"
+import { useWorkflow } from "../context/workflow-context"
 
 interface SystemTaskNodeProps {
   data: {
@@ -10,9 +15,14 @@ interface SystemTaskNodeProps {
     status?: string
     collapsed?: boolean
   }
+  id: string
 }
 
-export function SystemTaskNode({ data }: SystemTaskNodeProps) {
+export function SystemTaskNode({ data, id }: SystemTaskNodeProps) {
+  const { removeTask, showConfirmation } = useWorkflow()
+
+  const isInBranch = id.includes("_case_") || id.includes("_fork_")
+
   const getIcon = () => {
     const type = data.taskType.toLowerCase()
     if (type.includes("fork")) return <GitFork className="h-4 w-4" />
@@ -20,11 +30,36 @@ export function SystemTaskNode({ data }: SystemTaskNodeProps) {
     return <Workflow className="h-4 w-4" />
   }
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    showConfirmation({
+      title: "Delete Task",
+      description: `Are you sure you want to delete "${data.label}"?`,
+      onConfirm: () => {
+        removeTask(data.taskReferenceName)
+        if (typeof window !== "undefined" && (window as any).__removeNode) {
+          ;(window as any).__removeNode(id)
+        }
+      },
+      confirmText: "Delete",
+      cancelText: "Cancel",
+    })
+  }
+
   return (
     <div className="relative">
       <Handle type="target" position={Position.Top} className="!bg-gray-400" />
 
-      <div className="min-w-[240px] rounded-lg border-2 border-teal-700 bg-teal-800 p-4 shadow-md">
+      <div className="group relative min-w-[240px] rounded-lg border-2 border-teal-700 bg-teal-800 p-4 shadow-md transition-shadow hover:shadow-xl">
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={handleDelete}
+          className="absolute -right-2 -top-2 h-6 w-6 rounded-full border-2 border-red-400 bg-white p-0 opacity-0 transition-opacity hover:bg-red-50 group-hover:opacity-100"
+        >
+          <X className="h-3 w-3 text-red-500" />
+        </Button>
+
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-1 items-start gap-2">
             <div className="mt-0.5 text-white">{getIcon()}</div>
@@ -41,6 +76,20 @@ export function SystemTaskNode({ data }: SystemTaskNodeProps) {
 
         {data.collapsed && (
           <button className="mt-2 rounded bg-white px-3 py-1 text-xs font-medium text-gray-900">Collapsed</button>
+        )}
+
+        {!isInBranch && (
+          <div className="absolute -bottom-4 left-1/2 z-10 -translate-x-1/2">
+            <TaskSelectionPopover nodeId={id}>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 rounded-full border-2 border-gray-300 bg-white p-0 opacity-0 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50 group-hover:opacity-100"
+              >
+                <Plus className="h-4 w-4 text-gray-600" />
+              </Button>
+            </TaskSelectionPopover>
+          </div>
         )}
       </div>
 

@@ -23,6 +23,8 @@ interface HttpTaskNodeProps {
 export const HttpTaskNode = memo(function HttpTaskNode({ data, id }: HttpTaskNodeProps) {
   const { removeTask, showConfirmation, getTask } = useWorkflow()
 
+  const isInBranch = id.includes("_case_") || id.includes("_fork_")
+
   const latestTask = getTask(data.taskReferenceName)
   const httpRequest = latestTask?.inputParameters?.http_request || {}
   const method = httpRequest.method || data.method
@@ -92,17 +94,19 @@ export const HttpTaskNode = memo(function HttpTaskNode({ data, id }: HttpTaskNod
           </div>
         )}
 
-        <div className="absolute -bottom-4 left-1/2 z-10 -translate-x-1/2">
-          <TaskSelectionPopover nodeId={id}>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 rounded-full border-2 border-gray-300 bg-white p-0 opacity-0 shadow-md transition-all hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg group-hover:opacity-100"
-            >
-              <Plus className="h-4 w-4 text-gray-600 hover:text-blue-600" />
-            </Button>
-          </TaskSelectionPopover>
-        </div>
+        {!isInBranch && (
+          <div className="absolute -bottom-4 left-1/2 z-10 -translate-x-1/2">
+            <TaskSelectionPopover nodeId={id}>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 rounded-full border-2 border-gray-300 bg-white p-0 opacity-0 shadow-md transition-all hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg group-hover:opacity-100"
+              >
+                <Plus className="h-4 w-4 text-gray-600 hover:text-blue-600" />
+              </Button>
+            </TaskSelectionPopover>
+          </div>
+        )}
       </div>
 
       <Handle type="source" position={Position.Bottom} className="!bg-gray-400" />

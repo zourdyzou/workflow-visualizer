@@ -12,6 +12,184 @@ import type { ConductorWorkflow } from "./types/conductor-types"
 import { useWorkflow } from "./context/workflow-context"
 import CodeEditor from "@uiw/react-textarea-code-editor"
 
+export interface WorkflowFormPanelLocalization {
+  // Tab labels
+  workflowTab: string
+  taskTab: string
+
+  // Workflow form labels
+  workflowName: string
+  workflowDescription: string
+  workflowVersion: string
+  timeout: string
+  timeoutPolicy: string
+  failureWorkflow: string
+  restartable: string
+  workflowStatusListener: string
+
+  // Timeout policy options
+  alertOnly: string
+  timeOutWorkflow: string
+
+  // Task form common labels
+  taskName: string
+  taskReferenceName: string
+  taskDefinition: string
+  referenceName: string
+  inputParameters: string
+  addParameter: string
+  empty: string
+  key: string
+  value: string
+  type: string
+
+  // Type options
+  typeString: string
+  typeNumber: string
+  typeBoolean: string
+  typeNull: string
+  typeObjectArray: string
+
+  // HTTP task labels
+  method: string
+  url: string
+  accept: string
+  contentType: string
+  maximumAttempts: string
+  body: string
+  json: string
+  parameters: string
+  code: string
+
+  // Event task labels
+  eventName: string
+  eventSink: string
+
+  // Start Workflow task labels
+  workflowNameField: string
+  workflowVersionField: string
+
+  // Decision task labels
+  decisionCases: string
+  defaultCase: string
+  caseLabelPrefix: string
+  noTasks: string
+  tasks: string
+  task: string
+
+  // Fork/Join task labels
+  forkBranches: string
+  branchLabelPrefix: string
+  joinNote: string
+  joinsFromFork: string
+  forkTaskLabel: string
+  numberOfBranches: string
+  joinOnBranchReferences: string
+  branchLabel: string
+
+  // JSON JQ Transform labels
+  jqQueryExpression: string
+  jqPlaceholder: string
+  jqHelpText: string
+
+  // Dynamic Fork labels
+  dynamicTasksParameter: string
+  dynamicTasksParameterHelp: string
+  dynamicTasksInputParameter: string
+  dynamicTasksInputParameterHelp: string
+  dynamicForkNote: string
+
+  // Button labels
+  cancel: string
+  save: string
+
+  // Misc
+  noTasksAvailable: string
+}
+
+const defaultLocalization: WorkflowFormPanelLocalization = {
+  workflowTab: "Workflow",
+  taskTab: "Task",
+
+  workflowName: "Workflow Name",
+  workflowDescription: "Description",
+  workflowVersion: "Version",
+  timeout: "Timeout (seconds)",
+  timeoutPolicy: "Timeout Policy",
+  failureWorkflow: "Failure Workflow",
+  restartable: "Restartable",
+  workflowStatusListener: "Workflow Status Listener Enabled",
+
+  alertOnly: "Alert Only",
+  timeOutWorkflow: "Time Out Workflow",
+
+  taskName: "Task Name",
+  taskReferenceName: "Task Reference Name",
+  taskDefinition: "Task Definition",
+  referenceName: "Reference Name",
+  inputParameters: "Input parameters",
+  addParameter: "Add parameter",
+  empty: "(empty)",
+  key: "Key",
+  value: "Value",
+  type: "Type",
+
+  typeString: "String",
+  typeNumber: "Number",
+  typeBoolean: "Boolean",
+  typeNull: "Null",
+  typeObjectArray: "Object/Array",
+
+  method: "Method",
+  url: "URL",
+  accept: "Accept",
+  contentType: "Content-Type",
+  maximumAttempts: "Maximum Attempts",
+  body: "Body:",
+  json: "JSON",
+  parameters: "Parameters",
+  code: "Code",
+
+  eventName: "Event Name",
+  eventSink: "Event Sink",
+
+  workflowNameField: "Workflow Name",
+  workflowVersionField: "Workflow Version",
+
+  decisionCases: "Decision Cases",
+  defaultCase: "Default Case",
+  caseLabelPrefix: "Case:",
+  noTasks: "No tasks",
+  tasks: "tasks",
+  task: "task",
+
+  forkBranches: "Fork Branches",
+  branchLabelPrefix: "Branch",
+  joinNote:
+    "JOIN tasks are automatically created and managed by the system. They wait for all branches of a FORK to complete before continuing the workflow.",
+  joinsFromFork: "Joins From Fork",
+  forkTaskLabel: "Fork task:",
+  numberOfBranches: "Number of Branches",
+  joinOnBranchReferences: "Join On (Branch References)",
+  branchLabel: "Branch",
+
+  jqQueryExpression: "JQ Query Expression",
+  jqPlaceholder: ".[] | select(.age > 18) | .name",
+  jqHelpText: "Enter a jq expression to transform JSON data (e.g., .users[].name)",
+
+  dynamicTasksParameter: "Dynamic Tasks Parameter",
+  dynamicTasksParameterHelp: "Name of the input parameter containing the array of tasks to fork",
+  dynamicTasksInputParameter: "Dynamic Tasks Input Parameter",
+  dynamicTasksInputParameterHelp: "Name of the input parameter containing the map of inputs for each forked task",
+  dynamicForkNote:
+    "The number of branches and their tasks are determined at runtime based on the input parameters provided by a preceding task.",
+
+  cancel: "Cancel",
+  save: "Save",
+
+  noTasksAvailable: "No tasks available",
+}
+
 interface WorkflowFormPanelProps {
   workflow: ConductorWorkflow
   selectedNode: any
@@ -19,6 +197,7 @@ interface WorkflowFormPanelProps {
   onOpenChange: (open: boolean) => void
   onSave: () => void
   onCancel: () => void
+  localizedObj?: WorkflowFormPanelLocalization
 }
 
 export function WorkflowFormPanel({
@@ -28,6 +207,7 @@ export function WorkflowFormPanel({
   onOpenChange,
   onSave,
   onCancel,
+  localizedObj = defaultLocalization, // Use default if not provided
 }: WorkflowFormPanelProps) {
   const [configTab, setConfigTab] = useState<"workflow" | "task">("workflow")
   const { workflow: contextWorkflow } = useWorkflow()
@@ -86,7 +266,7 @@ export function WorkflowFormPanel({
                   : "text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-50"
               }`}
             >
-              Workflow
+              {localizedObj.workflowTab}
             </button>
             <button
               onClick={() => setConfigTab("task")}
@@ -96,7 +276,7 @@ export function WorkflowFormPanel({
                   : "text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-50"
               }`}
             >
-              Task
+              {localizedObj.taskTab}
             </button>
           </div>
         </div>
@@ -105,72 +285,80 @@ export function WorkflowFormPanel({
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-6 py-4">
         {configTab === "workflow" ? (
-          <WorkflowForm workflow={workflow} />
+          <WorkflowForm workflow={workflow} localizedObj={localizedObj} />
         ) : displayTask ? (
-          <TaskForm key={displayTask.id} task={displayTask.data} taskReferenceName={actualTaskReferenceName} />
+          <TaskForm
+            key={displayTask.id}
+            task={displayTask.data}
+            taskReferenceName={actualTaskReferenceName}
+            localizedObj={localizedObj}
+          />
         ) : (
-          <div className="text-center text-gray-500 py-8">No tasks available</div>
+          <div className="text-center text-gray-500 py-8">{localizedObj.noTasksAvailable}</div>
         )}
       </div>
 
       {/* Footer Actions */}
       <div className="border-t px-6 py-4 flex gap-3">
         <Button variant="outline" onClick={onCancel} className="flex-1 bg-transparent">
-          Cancel
+          {localizedObj.cancel}
         </Button>
         <Button onClick={onSave} className="flex-1 bg-sky-400 hover:bg-sky-500 text-white">
-          Save
+          {localizedObj.save}
         </Button>
       </div>
     </div>
   )
 }
 
-function WorkflowForm({ workflow }: { workflow: ConductorWorkflow }) {
+function WorkflowForm({
+  workflow,
+  localizedObj,
+}: { workflow: ConductorWorkflow; localizedObj: WorkflowFormPanelLocalization }) {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="workflow-name">Workflow Name</Label>
+        <Label htmlFor="workflow-name">{localizedObj.workflowName}</Label>
         <Input id="workflow-name" defaultValue={workflow.name} />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="workflow-description">Description</Label>
+        <Label htmlFor="workflow-description">{localizedObj.workflowDescription}</Label>
         <Textarea id="workflow-description" defaultValue={workflow.description} rows={3} />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="workflow-version">Version</Label>
+        <Label htmlFor="workflow-version">{localizedObj.workflowVersion}</Label>
         <Input id="workflow-version" type="number" defaultValue={workflow.version} />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="timeout">Timeout (seconds)</Label>
+        <Label htmlFor="timeout">{localizedObj.timeout}</Label>
         <Input id="timeout" type="number" defaultValue={workflow.timeoutSeconds} />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="timeout-policy">Timeout Policy</Label>
+        <Label htmlFor="timeout-policy">{localizedObj.timeoutPolicy}</Label>
         <Select defaultValue={workflow.timeoutPolicy}>
           <SelectTrigger id="timeout-policy">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALERT_ONLY">Alert Only</SelectItem>
-            <SelectItem value="TIME_OUT_WF">Time Out Workflow</SelectItem>
+            <SelectItem value="ALERT_ONLY">{localizedObj.alertOnly}</SelectItem>
+            <SelectItem value="TIME_OUT_WF">{localizedObj.timeOutWorkflow}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="failure-workflow">Failure Workflow</Label>
+        <Label htmlFor="failure-workflow">{localizedObj.failureWorkflow}</Label>
         <Input id="failure-workflow" defaultValue={workflow.failureWorkflow} />
       </div>
 
       <div className="flex items-center gap-2">
         <input type="checkbox" id="restartable" defaultChecked={workflow.restartable} className="h-4 w-4" />
         <Label htmlFor="restartable" className="font-normal">
-          Restartable
+          {localizedObj.restartable}
         </Label>
       </div>
 
@@ -182,35 +370,59 @@ function WorkflowForm({ workflow }: { workflow: ConductorWorkflow }) {
           className="h-4 w-4"
         />
         <Label htmlFor="status-listener" className="font-normal">
-          Workflow Status Listener Enabled
+          {localizedObj.workflowStatusListener}
         </Label>
       </div>
     </div>
   )
 }
 
-function TaskForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
+function TaskForm({
+  task,
+  taskReferenceName,
+  localizedObj,
+}: { task: any; taskReferenceName: string; localizedObj: WorkflowFormPanelLocalization }) {
   const fullTask = task.task || task
   const taskType = task.taskType || "WORKER"
 
   return (
     <div className="space-y-4">
-      {taskType === "WORKER" && <SimpleTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
-      {taskType === "HTTP" && <HttpTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
-      {taskType === "EVENT" && <EventTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
-      {taskType === "START_WORKFLOW" && <StartWorkflowTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
-      {taskType === "DECISION" && <DecisionTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
-      {taskType === "FORK_JOIN" && <ForkJoinTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
-      {taskType === "JOIN" && <JoinTaskForm task={fullTask} taskReferenceName={taskReferenceName} />}
-      {taskType === "JSON_JQ_TRANSFORM" && (
-        <JsonJqTransformForm task={fullTask} taskReferenceName={taskReferenceName} />
+      {taskType === "WORKER" && (
+        <SimpleTaskForm task={fullTask} taskReferenceName={taskReferenceName} localizedObj={localizedObj} />
       )}
-      {taskType === "DYNAMIC_FORK" && <DynamicForkForm task={fullTask} taskReferenceName={taskReferenceName} />}
+      {taskType === "HTTP" && (
+        <HttpTaskForm task={fullTask} taskReferenceName={taskReferenceName} localizedObj={localizedObj} />
+      )}
+      {taskType === "EVENT" && (
+        <EventTaskForm task={fullTask} taskReferenceName={taskReferenceName} localizedObj={localizedObj} />
+      )}
+      {taskType === "START_WORKFLOW" && (
+        <StartWorkflowTaskForm task={fullTask} taskReferenceName={taskReferenceName} localizedObj={localizedObj} />
+      )}
+      {taskType === "DECISION" && (
+        <DecisionTaskForm task={fullTask} taskReferenceName={taskReferenceName} localizedObj={localizedObj} />
+      )}
+      {taskType === "FORK_JOIN" && (
+        <ForkJoinTaskForm task={fullTask} taskReferenceName={taskReferenceName} localizedObj={localizedObj} />
+      )}
+      {taskType === "JOIN" && (
+        <JoinTaskForm task={fullTask} taskReferenceName={taskReferenceName} localizedObj={localizedObj} />
+      )}
+      {taskType === "JSON_JQ_TRANSFORM" && (
+        <JsonJqTransformForm task={fullTask} taskReferenceName={taskReferenceName} localizedObj={localizedObj} />
+      )}
+      {taskType === "DYNAMIC_FORK" && (
+        <DynamicForkForm task={fullTask} taskReferenceName={taskReferenceName} localizedObj={localizedObj} />
+      )}
     </div>
   )
 }
 
-function SimpleTaskForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
+function SimpleTaskForm({
+  task,
+  taskReferenceName,
+  localizedObj,
+}: { task: any; taskReferenceName: string; localizedObj: WorkflowFormPanelLocalization }) {
   const { updateTask } = useWorkflow()
   const inputParams = task.inputParameters || {}
 
@@ -265,33 +477,33 @@ function SimpleTaskForm({ task, taskReferenceName }: { task: any; taskReferenceN
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor="task-name">Task Name</Label>
+        <Label htmlFor="task-name">{localizedObj.taskName}</Label>
         <Input id="task-name" value={taskName} onChange={(e) => setTaskName(e.target.value)} />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="task-ref">Task Reference Name</Label>
+        <Label htmlFor="task-ref">{localizedObj.taskReferenceName}</Label>
         <Input id="task-ref" value={taskRef} onChange={(e) => setTaskRef(e.target.value)} />
       </div>
 
       <div className="space-y-3">
-        <div className="text-sm font-medium text-gray-700">Input parameters</div>
+        <div className="text-sm font-medium text-gray-700">{localizedObj.inputParameters}</div>
 
         <div className="border border-dashed border-gray-300 rounded-md p-4">
           {parameters.length === 0 ? (
             <div className="flex items-center justify-between">
               <Button onClick={addParameter} className="bg-sky-400 hover:bg-sky-500 text-white">
                 <CirclePlus className="h-4 w-4 mr-2" />
-                Add parameter
+                {localizedObj.addParameter}
               </Button>
-              <span className="text-sm text-gray-500">(empty)</span>
+              <span className="text-sm text-gray-500">{localizedObj.empty}</span>
             </div>
           ) : (
             <div className="space-y-3">
               {parameters.map((param, index) => (
                 <div key={index} className="grid grid-cols-[1fr_2fr_140px_auto] gap-3 items-end">
                   <div className="space-y-2">
-                    <Label htmlFor={`param-key-${index}`}>Key</Label>
+                    <Label htmlFor={`param-key-${index}`}>{localizedObj.key}</Label>
                     <Input
                       id={`param-key-${index}`}
                       value={param.key}
@@ -305,7 +517,7 @@ function SimpleTaskForm({ task, taskReferenceName }: { task: any; taskReferenceN
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor={`param-value-${index}`}>Value</Label>
+                    <Label htmlFor={`param-value-${index}`}>{localizedObj.value}</Label>
                     <Input
                       id={`param-value-${index}`}
                       value={param.value}
@@ -319,7 +531,7 @@ function SimpleTaskForm({ task, taskReferenceName }: { task: any; taskReferenceN
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor={`param-type-${index}`}>Type</Label>
+                    <Label htmlFor={`param-type-${index}`}>{localizedObj.type}</Label>
                     <Select
                       value={param.type}
                       onValueChange={(value) => {
@@ -332,11 +544,11 @@ function SimpleTaskForm({ task, taskReferenceName }: { task: any; taskReferenceN
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="String">String</SelectItem>
-                        <SelectItem value="Number">Number</SelectItem>
-                        <SelectItem value="Boolean">Boolean</SelectItem>
-                        <SelectItem value="Null">Null</SelectItem>
-                        <SelectItem value="Object/Array">Object/Array</SelectItem>
+                        <SelectItem value="String">{localizedObj.typeString}</SelectItem>
+                        <SelectItem value="Number">{localizedObj.typeNumber}</SelectItem>
+                        <SelectItem value="Boolean">{localizedObj.typeBoolean}</SelectItem>
+                        <SelectItem value="Null">{localizedObj.typeNull}</SelectItem>
+                        <SelectItem value="Object/Array">{localizedObj.typeObjectArray}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -353,7 +565,7 @@ function SimpleTaskForm({ task, taskReferenceName }: { task: any; taskReferenceN
               ))}
               <Button onClick={addParameter} className="bg-sky-400 hover:bg-sky-500 text-white">
                 <CirclePlus className="h-4 w-4 mr-2" />
-                Add parameter
+                {localizedObj.addParameter}
               </Button>
             </div>
           )}
@@ -363,7 +575,11 @@ function SimpleTaskForm({ task, taskReferenceName }: { task: any; taskReferenceN
   )
 }
 
-function HttpTaskForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
+function HttpTaskForm({
+  task,
+  taskReferenceName,
+  localizedObj,
+}: { task: any; taskReferenceName: string; localizedObj: WorkflowFormPanelLocalization }) {
   const { updateTask } = useWorkflow()
   const httpRequest = task.inputParameters?.http_request || {}
 
@@ -451,19 +667,19 @@ function HttpTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNam
     <div className="space-y-6">
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="task-name">Task Definition</Label>
+          <Label htmlFor="task-name">{localizedObj.taskDefinition}</Label>
           <Input id="task-name" value={taskName} onChange={(e) => setTaskName(e.target.value)} className="w-full" />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="task-ref">Reference Name</Label>
+          <Label htmlFor="task-ref">{localizedObj.referenceName}</Label>
           <Input id="task-ref" value={taskRef} onChange={(e) => setTaskRef(e.target.value)} className="w-full" />
         </div>
       </div>
 
       <div className="grid grid-cols-[140px_1fr] gap-4">
         <div className="space-y-2">
-          <Label htmlFor="method">Method</Label>
+          <Label htmlFor="method">{localizedObj.method}</Label>
           <Select value={method} onValueChange={setMethod}>
             <SelectTrigger id="method" className="w-full">
               <SelectValue />
@@ -481,7 +697,7 @@ function HttpTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNam
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="url">URL</Label>
+          <Label htmlFor="url">{localizedObj.url}</Label>
           <Input
             id="url"
             value={uri}
@@ -494,12 +710,12 @@ function HttpTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNam
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="accept">Accept</Label>
+          <Label htmlFor="accept">{localizedObj.accept}</Label>
           <Input id="accept" value={accept} onChange={(e) => setAccept(e.target.value)} className="w-full" />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="content-type">Content-Type</Label>
+          <Label htmlFor="content-type">{localizedObj.contentType}</Label>
           <Input
             id="content-type"
             value={contentType}
@@ -510,13 +726,13 @@ function HttpTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNam
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="max-attempts">Maximum Attempts</Label>
+        <Label htmlFor="max-attempts">{localizedObj.maximumAttempts}</Label>
         <Input id="max-attempts" type="number" placeholder="3" className="w-full" />
       </div>
 
       <div className="space-y-3">
         <div className="flex items-center gap-4">
-          <span className="text-sm font-medium text-gray-700">Body:</span>
+          <span className="text-sm font-medium text-gray-700">{localizedObj.body}</span>
           <RadioGroup
             value={bodyType}
             onValueChange={(v) => setBodyType(v as "json" | "parameters")}
@@ -525,13 +741,13 @@ function HttpTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNam
             <div className="flex items-center gap-2">
               <RadioGroupItem value="json" id="json" />
               <Label htmlFor="json" className="font-normal cursor-pointer">
-                JSON
+                {localizedObj.json}
               </Label>
             </div>
             <div className="flex items-center gap-2">
               <RadioGroupItem value="parameters" id="parameters" />
               <Label htmlFor="parameters" className="font-normal cursor-pointer">
-                Parameters
+                {localizedObj.parameters}
               </Label>
             </div>
           </RadioGroup>
@@ -539,7 +755,7 @@ function HttpTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNam
 
         {bodyType === "json" ? (
           <div className="space-y-2">
-            <Label htmlFor="body-code">Code</Label>
+            <Label htmlFor="body-code">{localizedObj.code}</Label>
             <Textarea
               id="body-code"
               value={bodyStr}
@@ -554,16 +770,16 @@ function HttpTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNam
               <div className="flex items-center justify-between">
                 <Button onClick={addParameter} className="bg-sky-400 hover:bg-sky-500 text-white">
                   <CirclePlus className="h-4 w-4 mr-2" />
-                  Add parameter
+                  {localizedObj.addParameter}
                 </Button>
-                <span className="text-sm text-gray-500">(empty)</span>
+                <span className="text-sm text-gray-500">{localizedObj.empty}</span>
               </div>
             ) : (
               <div className="space-y-3">
                 {bodyParameters.map((param, index) => (
                   <div key={index} className="grid grid-cols-[1fr_2fr_auto] gap-3 items-end">
                     <div className="space-y-2">
-                      <Label htmlFor={`param-key-${index}`}>Key</Label>
+                      <Label htmlFor={`param-key-${index}`}>{localizedObj.key}</Label>
                       <Input
                         id={`param-key-${index}`}
                         value={param.key}
@@ -577,7 +793,7 @@ function HttpTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNam
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor={`param-value-${index}`}>Value</Label>
+                      <Label htmlFor={`param-value-${index}`}>{localizedObj.value}</Label>
                       <Input
                         id={`param-value-${index}`}
                         value={param.value}
@@ -603,7 +819,7 @@ function HttpTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNam
                 ))}
                 <Button onClick={addParameter} className="bg-sky-400 hover:bg-sky-500 text-white">
                   <CirclePlus className="h-4 w-4 mr-2" />
-                  Add parameter
+                  {localizedObj.addParameter}
                 </Button>
               </div>
             )}
@@ -614,7 +830,11 @@ function HttpTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNam
   )
 }
 
-function EventTaskForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
+function EventTaskForm({
+  task,
+  taskReferenceName,
+  localizedObj,
+}: { task: any; taskReferenceName: string; localizedObj: WorkflowFormPanelLocalization }) {
   const { updateTask } = useWorkflow()
   const eventName = task.inputParameters?.eventName || ""
   const sink = task.sink || ""
@@ -677,17 +897,17 @@ function EventTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNa
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor="task-name">Task Name</Label>
+        <Label htmlFor="task-name">{localizedObj.taskName}</Label>
         <Input id="task-name" defaultValue={task.name || ""} />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="task-ref">Task Reference Name</Label>
+        <Label htmlFor="task-ref">{localizedObj.taskReferenceName}</Label>
         <Input id="task-ref" defaultValue={task.taskReferenceName || taskReferenceName} />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="event-name">Event Name</Label>
+        <Label htmlFor="event-name">{localizedObj.eventName}</Label>
         <Input
           id="event-name"
           value={currentEventName}
@@ -697,7 +917,7 @@ function EventTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNa
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="event-sink">Event Sink</Label>
+        <Label htmlFor="event-sink">{localizedObj.eventSink}</Label>
         <Input
           id="event-sink"
           value={currentSink}
@@ -707,23 +927,23 @@ function EventTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNa
       </div>
 
       <div className="space-y-3">
-        <div className="text-sm font-medium text-gray-700">Input parameters</div>
+        <div className="text-sm font-medium text-gray-700">{localizedObj.inputParameters}</div>
 
         <div className="border border-dashed border-gray-300 rounded-md p-4">
           {parameters.length === 0 ? (
             <div className="flex items-center justify-between">
               <Button onClick={addParameter} className="bg-sky-400 hover:bg-sky-500 text-white">
                 <CirclePlus className="h-4 w-4 mr-2" />
-                Add parameter
+                {localizedObj.addParameter}
               </Button>
-              <span className="text-sm text-gray-500">(empty)</span>
+              <span className="text-sm text-gray-500">{localizedObj.empty}</span>
             </div>
           ) : (
             <div className="space-y-3">
               {parameters.map((param, index) => (
                 <div key={index} className="grid grid-cols-[1fr_2fr_140px_auto] gap-3 items-end">
                   <div className="space-y-2">
-                    <Label htmlFor={`param-key-${index}`}>Key</Label>
+                    <Label htmlFor={`param-key-${index}`}>{localizedObj.key}</Label>
                     <Input
                       id={`param-key-${index}`}
                       value={param.key}
@@ -737,7 +957,7 @@ function EventTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNa
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor={`param-value-${index}`}>Value</Label>
+                    <Label htmlFor={`param-value-${index}`}>{localizedObj.value}</Label>
                     <Input
                       id={`param-value-${index}`}
                       value={param.value}
@@ -751,7 +971,7 @@ function EventTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNa
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor={`param-type-${index}`}>Type</Label>
+                    <Label htmlFor={`param-type-${index}`}>{localizedObj.type}</Label>
                     <Select
                       value={param.type}
                       onValueChange={(value) => {
@@ -764,11 +984,11 @@ function EventTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNa
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="String">String</SelectItem>
-                        <SelectItem value="Number">Number</SelectItem>
-                        <SelectItem value="Boolean">Boolean</SelectItem>
-                        <SelectItem value="Null">Null</SelectItem>
-                        <SelectItem value="Object/Array">Object/Array</SelectItem>
+                        <SelectItem value="String">{localizedObj.typeString}</SelectItem>
+                        <SelectItem value="Number">{localizedObj.typeNumber}</SelectItem>
+                        <SelectItem value="Boolean">{localizedObj.typeBoolean}</SelectItem>
+                        <SelectItem value="Null">{localizedObj.typeNull}</SelectItem>
+                        <SelectItem value="Object/Array">{localizedObj.typeObjectArray}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -785,7 +1005,7 @@ function EventTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNa
               ))}
               <Button onClick={addParameter} className="bg-sky-400 hover:bg-sky-500 text-white">
                 <CirclePlus className="h-4 w-4 mr-2" />
-                Add parameter
+                {localizedObj.addParameter}
               </Button>
             </div>
           )}
@@ -795,7 +1015,11 @@ function EventTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNa
   )
 }
 
-function StartWorkflowTaskForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
+function StartWorkflowTaskForm({
+  task,
+  taskReferenceName,
+  localizedObj,
+}: { task: any; taskReferenceName: string; localizedObj: WorkflowFormPanelLocalization }) {
   const { updateTask } = useWorkflow()
   const workflowName = task.inputParameters?.workflowName || task.subWorkflowParam?.name || ""
   const workflowVersion = task.inputParameters?.workflowVersion || task.subWorkflowParam?.version || 1
@@ -870,17 +1094,17 @@ function StartWorkflowTaskForm({ task, taskReferenceName }: { task: any; taskRef
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor="task-name">Task Name</Label>
+        <Label htmlFor="task-name">{localizedObj.taskName}</Label>
         <Input id="task-name" defaultValue={task.name || ""} />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="task-ref">Task Reference Name</Label>
+        <Label htmlFor="task-ref">{localizedObj.taskReferenceName}</Label>
         <Input id="task-ref" defaultValue={task.taskReferenceName || taskReferenceName} />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="workflow-name">Workflow Name</Label>
+        <Label htmlFor="workflow-name">{localizedObj.workflowNameField}</Label>
         <Input
           id="workflow-name"
           value={currentWorkflowName}
@@ -890,7 +1114,7 @@ function StartWorkflowTaskForm({ task, taskReferenceName }: { task: any; taskRef
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="workflow-version">Workflow Version</Label>
+        <Label htmlFor="workflow-version">{localizedObj.workflowVersionField}</Label>
         <Input
           id="workflow-version"
           type="number"
@@ -901,23 +1125,23 @@ function StartWorkflowTaskForm({ task, taskReferenceName }: { task: any; taskRef
       </div>
 
       <div className="space-y-3">
-        <div className="text-sm font-medium text-gray-700">Input parameters</div>
+        <div className="text-sm font-medium text-gray-700">{localizedObj.inputParameters}</div>
 
         <div className="border border-dashed border-gray-300 rounded-md p-4">
           {parameters.length === 0 ? (
             <div className="flex items-center justify-between">
               <Button onClick={addParameter} className="bg-sky-400 hover:bg-sky-500 text-white">
                 <CirclePlus className="h-4 w-4 mr-2" />
-                Add parameter
+                {localizedObj.addParameter}
               </Button>
-              <span className="text-sm text-gray-500">(empty)</span>
+              <span className="text-sm text-gray-500">{localizedObj.empty}</span>
             </div>
           ) : (
             <div className="space-y-3">
               {parameters.map((param, index) => (
                 <div key={index} className="grid grid-cols-[1fr_2fr_140px_auto] gap-3 items-end">
                   <div className="space-y-2">
-                    <Label htmlFor={`param-key-${index}`}>Key</Label>
+                    <Label htmlFor={`param-key-${index}`}>{localizedObj.key}</Label>
                     <Input
                       id={`param-key-${index}`}
                       value={param.key}
@@ -931,7 +1155,7 @@ function StartWorkflowTaskForm({ task, taskReferenceName }: { task: any; taskRef
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor={`param-value-${index}`}>Value</Label>
+                    <Label htmlFor={`param-value-${index}`}>{localizedObj.value}</Label>
                     <Input
                       id={`param-value-${index}`}
                       value={param.value}
@@ -945,7 +1169,7 @@ function StartWorkflowTaskForm({ task, taskReferenceName }: { task: any; taskRef
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor={`param-type-${index}`}>Type</Label>
+                    <Label htmlFor={`param-type-${index}`}>{localizedObj.type}</Label>
                     <Select
                       value={param.type}
                       onValueChange={(value) => {
@@ -958,11 +1182,11 @@ function StartWorkflowTaskForm({ task, taskReferenceName }: { task: any; taskRef
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="String">String</SelectItem>
-                        <SelectItem value="Number">Number</SelectItem>
-                        <SelectItem value="Boolean">Boolean</SelectItem>
-                        <SelectItem value="Null">Null</SelectItem>
-                        <SelectItem value="Object/Array">Object/Array</SelectItem>
+                        <SelectItem value="String">{localizedObj.typeString}</SelectItem>
+                        <SelectItem value="Number">{localizedObj.typeNumber}</SelectItem>
+                        <SelectItem value="Boolean">{localizedObj.typeBoolean}</SelectItem>
+                        <SelectItem value="Null">{localizedObj.typeNull}</SelectItem>
+                        <SelectItem value="Object/Array">{localizedObj.typeObjectArray}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -979,7 +1203,7 @@ function StartWorkflowTaskForm({ task, taskReferenceName }: { task: any; taskRef
               ))}
               <Button onClick={addParameter} className="bg-sky-400 hover:bg-sky-500 text-white">
                 <CirclePlus className="h-4 w-4 mr-2" />
-                Add parameter
+                {localizedObj.addParameter}
               </Button>
             </div>
           )}
@@ -989,7 +1213,11 @@ function StartWorkflowTaskForm({ task, taskReferenceName }: { task: any; taskRef
   )
 }
 
-function DecisionTaskForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
+function DecisionTaskForm({
+  task,
+  taskReferenceName,
+  localizedObj,
+}: { task: any; taskReferenceName: string; localizedObj: WorkflowFormPanelLocalization }) {
   const { updateTask, getTask } = useWorkflow()
 
   // Get the latest task data from the workflow context
@@ -1016,30 +1244,32 @@ function DecisionTaskForm({ task, taskReferenceName }: { task: any; taskReferenc
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor="task-name">Task Name</Label>
+        <Label htmlFor="task-name">{localizedObj.taskName}</Label>
         <Input id="task-name" value={taskName} onChange={(e) => setTaskName(e.target.value)} />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="task-ref">Task Reference Name</Label>
+        <Label htmlFor="task-ref">{localizedObj.taskReferenceName}</Label>
         <Input id="task-ref" value={taskRef} onChange={(e) => setTaskRef(e.target.value)} />
       </div>
 
       <div className="space-y-3">
-        <div className="text-sm font-medium text-gray-700">Decision Cases</div>
+        <div className="text-sm font-medium text-gray-700">{localizedObj.decisionCases}</div>
 
         <div className="border border-dashed border-gray-300 rounded-md p-4">
           {Object.keys(decisionCases).length === 0 ? (
-            <div className="text-sm text-gray-500 text-center py-2">(empty)</div>
+            <div className="text-sm text-gray-500 text-center py-2">{localizedObj.empty}</div>
           ) : (
             <div className="space-y-4">
               {Object.entries(decisionCases).map(([caseName, tasks]: [string, any]) => (
                 <div key={caseName} className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <div className="text-sm font-medium text-gray-900">Case: {caseName}</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {localizedObj.caseLabelPrefix} {caseName}
+                    </div>
                     <div className="text-xs text-gray-500">
-                      ({Array.isArray(tasks) ? tasks.length : 0} task
-                      {Array.isArray(tasks) && tasks.length !== 1 ? "s" : ""})
+                      ({Array.isArray(tasks) ? tasks.length : 0}{" "}
+                      {Array.isArray(tasks) && tasks.length !== 1 ? localizedObj.tasks : localizedObj.task})
                     </div>
                   </div>
                   <div className="pl-4 space-y-1">
@@ -1052,7 +1282,7 @@ function DecisionTaskForm({ task, taskReferenceName }: { task: any; taskReferenc
                         </div>
                       ))
                     ) : (
-                      <div className="text-sm text-gray-400 italic">No tasks</div>
+                      <div className="text-sm text-gray-400 italic">{localizedObj.noTasks}</div>
                     )}
                   </div>
                 </div>
@@ -1063,11 +1293,11 @@ function DecisionTaskForm({ task, taskReferenceName }: { task: any; taskReferenc
       </div>
 
       <div className="space-y-3">
-        <div className="text-sm font-medium text-gray-700">Default Case</div>
+        <div className="text-sm font-medium text-gray-700">{localizedObj.defaultCase}</div>
 
         <div className="border border-dashed border-gray-300 rounded-md p-4">
           {defaultCase.length === 0 ? (
-            <div className="text-sm text-gray-500 text-center py-2">(empty)</div>
+            <div className="text-sm text-gray-500 text-center py-2">{localizedObj.empty}</div>
           ) : (
             <div className="space-y-1">
               {defaultCase.map((t: any, idx: number) => (
@@ -1085,7 +1315,11 @@ function DecisionTaskForm({ task, taskReferenceName }: { task: any; taskReferenc
   )
 }
 
-function ForkJoinTaskForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
+function ForkJoinTaskForm({
+  task,
+  taskReferenceName,
+  localizedObj,
+}: { task: any; taskReferenceName: string; localizedObj: WorkflowFormPanelLocalization }) {
   const { updateTask, getTask } = useWorkflow()
 
   // Get the latest task data from the workflow context
@@ -1111,30 +1345,32 @@ function ForkJoinTaskForm({ task, taskReferenceName }: { task: any; taskReferenc
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor="task-name">Task Name</Label>
+        <Label htmlFor="task-name">{localizedObj.taskName}</Label>
         <Input id="task-name" value={taskName} onChange={(e) => setTaskName(e.target.value)} />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="task-ref">Task Reference Name</Label>
+        <Label htmlFor="task-ref">{localizedObj.taskReferenceName}</Label>
         <Input id="task-ref" value={taskRef} onChange={(e) => setTaskRef(e.target.value)} />
       </div>
 
       <div className="space-y-3">
-        <div className="text-sm font-medium text-gray-700">Fork Branches</div>
+        <div className="text-sm font-medium text-gray-700">{localizedObj.forkBranches}</div>
 
         <div className="border border-dashed border-gray-300 rounded-md p-4">
           {forkTasks.length === 0 ? (
-            <div className="text-sm text-gray-500 text-center py-2">(empty)</div>
+            <div className="text-sm text-gray-500 text-center py-2">{localizedObj.empty}</div>
           ) : (
             <div className="space-y-4">
               {forkTasks.map((branchTasks: any[], branchIndex: number) => (
                 <div key={branchIndex} className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <div className="text-sm font-medium text-gray-900">Branch {branchIndex + 1}</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {localizedObj.branchLabelPrefix} {branchIndex + 1}
+                    </div>
                     <div className="text-xs text-gray-500">
-                      ({Array.isArray(branchTasks) ? branchTasks.length : 0} task
-                      {Array.isArray(branchTasks) && branchTasks.length !== 1 ? "s" : ""})
+                      ({Array.isArray(branchTasks) ? branchTasks.length : 0}{" "}
+                      {Array.isArray(branchTasks) && branchTasks.length !== 1 ? localizedObj.tasks : localizedObj.task})
                     </div>
                   </div>
                   <div className="pl-4 space-y-1">
@@ -1147,7 +1383,7 @@ function ForkJoinTaskForm({ task, taskReferenceName }: { task: any; taskReferenc
                         </div>
                       ))
                     ) : (
-                      <div className="text-sm text-gray-400 italic">No tasks</div>
+                      <div className="text-sm text-gray-400 italic">{localizedObj.noTasks}</div>
                     )}
                   </div>
                 </div>
@@ -1160,7 +1396,11 @@ function ForkJoinTaskForm({ task, taskReferenceName }: { task: any; taskReferenc
   )
 }
 
-function JsonJqTransformForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
+function JsonJqTransformForm({
+  task,
+  taskReferenceName,
+  localizedObj,
+}: { task: any; taskReferenceName: string; localizedObj: WorkflowFormPanelLocalization }) {
   const { updateTask } = useWorkflow()
   const [taskName, setTaskName] = useState(task.name || "")
   const [taskRef, setTaskRef] = useState(task.taskReferenceName || taskReferenceName)
@@ -1180,22 +1420,22 @@ function JsonJqTransformForm({ task, taskReferenceName }: { task: any; taskRefer
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor="task-name">Task Name</Label>
+        <Label htmlFor="task-name">{localizedObj.taskName}</Label>
         <Input id="task-name" value={taskName} onChange={(e) => setTaskName(e.target.value)} />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="task-ref">Task Reference Name</Label>
+        <Label htmlFor="task-ref">{localizedObj.taskReferenceName}</Label>
         <Input id="task-ref" value={taskRef} onChange={(e) => setTaskRef(e.target.value)} />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="query-expression">JQ Query Expression</Label>
+        <Label htmlFor="query-expression">{localizedObj.jqQueryExpression}</Label>
         <div className="border rounded-md overflow-hidden">
           <CodeEditor
             value={queryExpression}
             language="js"
-            placeholder=".[] | select(.age > 18) | .name"
+            placeholder={localizedObj.jqPlaceholder}
             onChange={(e) => setQueryExpression(e.target.value)}
             padding={12}
             style={{
@@ -1206,13 +1446,17 @@ function JsonJqTransformForm({ task, taskReferenceName }: { task: any; taskRefer
             }}
           />
         </div>
-        <p className="text-xs text-gray-500">Enter a jq expression to transform JSON data (e.g., .users[].name)</p>
+        <p className="text-xs text-gray-500">{localizedObj.jqHelpText}</p>
       </div>
     </>
   )
 }
 
-function DynamicForkForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
+function DynamicForkForm({
+  task,
+  taskReferenceName,
+  localizedObj,
+}: { task: any; taskReferenceName: string; localizedObj: WorkflowFormPanelLocalization }) {
   const { updateTask } = useWorkflow()
   const [taskName, setTaskName] = useState(task.name || "")
   const [taskRef, setTaskRef] = useState(task.taskReferenceName || taskReferenceName)
@@ -1242,50 +1486,51 @@ function DynamicForkForm({ task, taskReferenceName }: { task: any; taskReference
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor="task-name">Task Name</Label>
+        <Label htmlFor="task-name">{localizedObj.taskName}</Label>
         <Input id="task-name" value={taskName} onChange={(e) => setTaskName(e.target.value)} />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="task-ref">Task Reference Name</Label>
+        <Label htmlFor="task-ref">{localizedObj.taskReferenceName}</Label>
         <Input id="task-ref" value={taskRef} onChange={(e) => setTaskRef(e.target.value)} />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="dynamic-tasks-param">Dynamic Tasks Parameter</Label>
+        <Label htmlFor="dynamic-tasks-param">{localizedObj.dynamicTasksParameter}</Label>
         <Input
           id="dynamic-tasks-param"
           value={dynamicForkTasksParam}
           onChange={(e) => setDynamicForkTasksParam(e.target.value)}
           placeholder="dynamicTasks"
         />
-        <p className="text-xs text-gray-500">Name of the input parameter containing the array of tasks to fork</p>
+        <p className="text-xs text-gray-500">{localizedObj.dynamicTasksParameterHelp}</p>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="dynamic-tasks-input-param">Dynamic Tasks Input Parameter</Label>
+        <Label htmlFor="dynamic-tasks-input-param">{localizedObj.dynamicTasksInputParameter}</Label>
         <Input
           id="dynamic-tasks-input-param"
           value={dynamicForkTasksInputParamName}
           onChange={(e) => setDynamicForkTasksInputParamName(e.target.value)}
           placeholder="dynamicTasksInput"
         />
-        <p className="text-xs text-gray-500">
-          Name of the input parameter containing the map of inputs for each forked task
-        </p>
+        <p className="text-xs text-gray-500">{localizedObj.dynamicTasksInputParameterHelp}</p>
       </div>
 
       <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
         <p className="text-xs text-blue-800">
-          <strong>Note:</strong> The number of branches and their tasks are determined at runtime based on the input
-          parameters provided by a preceding task.
+          <strong>Note:</strong> {localizedObj.dynamicForkNote}
         </p>
       </div>
     </>
   )
 }
 
-function JoinTaskForm({ task, taskReferenceName }: { task: any; taskReferenceName: string }) {
+function JoinTaskForm({
+  task,
+  taskReferenceName,
+  localizedObj,
+}: { task: any; taskReferenceName: string; localizedObj: WorkflowFormPanelLocalization }) {
   const { getTask } = useWorkflow()
 
   // Get the latest task data from the workflow context
@@ -1303,18 +1548,17 @@ function JoinTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNam
     <>
       <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 mb-4">
         <p className="text-sm text-purple-800">
-          <strong>Note:</strong> JOIN tasks are automatically created and managed by the system. They wait for all
-          branches of a FORK to complete before continuing the workflow.
+          <strong>Note:</strong> {localizedObj.joinNote}
         </p>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="task-name">Task Name</Label>
+        <Label htmlFor="task-name">{localizedObj.taskName}</Label>
         <Input id="task-name" value={latestTask.name || ""} disabled className="bg-gray-50" />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="task-ref">Task Reference Name</Label>
+        <Label htmlFor="task-ref">{localizedObj.taskReferenceName}</Label>
         <Input
           id="task-ref"
           value={latestTask.taskReferenceName || taskReferenceName}
@@ -1325,18 +1569,18 @@ function JoinTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNam
 
       {forkReferenceName && (
         <div className="space-y-2">
-          <Label htmlFor="fork-ref">Joins From Fork</Label>
+          <Label htmlFor="fork-ref">{localizedObj.joinsFromFork}</Label>
           <Input id="fork-ref" value={forkReferenceName} disabled className="bg-gray-50" />
           {forkTask && (
             <p className="text-xs text-gray-500">
-              Fork task: <span className="font-mono">{forkTask.name}</span>
+              {localizedObj.forkTaskLabel} <span className="font-mono">{forkTask.name}</span>
             </p>
           )}
         </div>
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="num-branches">Number of Branches</Label>
+        <Label htmlFor="num-branches">{localizedObj.numberOfBranches}</Label>
         <Input id="num-branches" value={numBranches} disabled className="bg-gray-50" />
         <p className="text-xs text-gray-500">
           This JOIN task waits for {numBranches} branch{numBranches !== 1 ? "es" : ""} to complete
@@ -1345,7 +1589,7 @@ function JoinTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNam
 
       {joinOn.length > 0 && (
         <div className="space-y-3">
-          <div className="text-sm font-medium text-gray-700">Join On (Branch References)</div>
+          <div className="text-sm font-medium text-gray-700">{localizedObj.joinOnBranchReferences}</div>
 
           <div className="border border-dashed border-gray-300 rounded-md p-4">
             <div className="space-y-2">
@@ -1353,7 +1597,9 @@ function JoinTaskForm({ task, taskReferenceName }: { task: any; taskReferenceNam
                 <div key={index} className="text-sm text-gray-600 flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
                   <span className="font-mono text-xs">{ref}</span>
-                  <span className="text-gray-400">(Branch {index + 1})</span>
+                  <span className="text-gray-400">
+                    ({localizedObj.branchLabel} {index + 1})
+                  </span>
                 </div>
               ))}
             </div>

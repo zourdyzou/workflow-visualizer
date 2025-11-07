@@ -5,6 +5,7 @@ import { memo } from "react"
 import { GitBranch, X, Plus, Minus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useWorkflow } from "../context/workflow-context"
+import { TaskSelectionPopover } from "../task-selection-popover"
 
 interface DecisionNodeProps {
   data: {
@@ -112,6 +113,8 @@ export const DecisionNode = memo(function DecisionNode({ data, id }: DecisionNod
 
       {cases.map((caseKey, index) => {
         const position = getHandlePosition(index, cases.length)
+        const caseNodeId = `${data.taskReferenceName}_case_${caseKey}_0`
+
         return (
           <div
             key={`case-${caseKey}`}
@@ -133,15 +136,16 @@ export const DecisionNode = memo(function DecisionNode({ data, id }: DecisionNod
 
             {/* Control buttons below the handle */}
             <div className="flex gap-1">
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={handleAddCase}
-                className="h-6 w-6 rounded-full border border-gray-300 bg-white p-0 shadow-sm transition-all hover:border-green-400 hover:bg-green-50"
-                title="Add decision case"
-              >
-                <Plus className="h-3 w-3 text-gray-600" />
-              </Button>
+              <TaskSelectionPopover nodeId={caseNodeId}>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-6 w-6 rounded-full border border-gray-300 bg-white p-0 shadow-sm transition-all hover:border-green-400 hover:bg-green-50"
+                  title={`Add task to case "${caseKey}"`}
+                >
+                  <Plus className="h-3 w-3 text-gray-600" />
+                </Button>
+              </TaskSelectionPopover>
               {cases.length > 2 && (
                 <Button
                   size="icon"
