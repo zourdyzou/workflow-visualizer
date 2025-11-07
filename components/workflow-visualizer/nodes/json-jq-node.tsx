@@ -20,7 +20,7 @@ interface JsonJqNodeProps {
 export const JsonJqNode = memo(function JsonJqNode({ data, id }: JsonJqNodeProps) {
   const { removeTask, showConfirmation } = useWorkflow()
 
-  const isInBranch = id.includes("_case_") || id.includes("_fork_")
+  const isInBranch = id.includes("_case_")
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()

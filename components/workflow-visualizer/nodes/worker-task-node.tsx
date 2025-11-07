@@ -20,7 +20,7 @@ interface WorkerTaskNodeProps {
 export const WorkerTaskNode = memo(function WorkerTaskNode({ data, id }: WorkerTaskNodeProps) {
   const { removeTask, showConfirmation } = useWorkflow()
 
-  const isInBranch = id.includes("_case_") || id.includes("_fork_")
+  const isInBranch = id.includes("_case_")
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()

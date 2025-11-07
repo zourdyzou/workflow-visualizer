@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useMemo, useCallback, useEffect, useRef, useState } from "react"
+import { useMemo, useCallback, useEffect, useRef } from "react"
 import { ReactFlow, Background, Controls, useNodesState, useEdgesState, MarkerType } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 import { SimpleTaskNode } from "./nodes/simple-task-node"
@@ -19,7 +19,6 @@ import { JsonJqNode } from "./nodes/json-jq-node"
 import { DynamicForkNode } from "./nodes/dynamic-fork-node"
 import { parseWorkflowToReactFlow } from "./utils/workflow-parser"
 import { useWorkflow } from "./context/workflow-context"
-import { WorkflowBranchSelectionDialog } from "./context/workflow-branch-selection-dialog"
 import type { ConductorWorkflow } from "./types/conductor-types"
 
 const nodeTypes = {
@@ -65,14 +64,6 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
 
   const nodesRef = useRef(nodes)
   const edgesRef = useRef(edges)
-
-  const [branchSelection, setBranchSelection] = useState<{
-    isOpen: boolean
-    branches: string[]
-    afterNodeId: string
-    taskType: string
-    taskData: any
-  } | null>(null)
 
   useEffect(() => {
     nodesRef.current = nodes
@@ -272,180 +263,17 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
       }
 
       if (afterNode.data?.taskType === "DECISION" || afterNode.data?.taskType === "SWITCH") {
-        const branches = afterNode.data?.cases || ["true", "false", "default"]
-
-        let taskTypeName = taskType.toLowerCase()
-        if (taskType === "WORKER") taskTypeName = "worker_task"
-        else if (taskType === "FORK_JOIN") taskTypeName = "fork"
-        else if (taskType === "JOIN") taskTypeName = "join"
-        else if (taskType === "DECISION") taskTypeName = "decision"
-        else if (taskType === "JSON_JQ_TRANSFORM") taskTypeName = "json_jq"
-        else if (taskType === "DYNAMIC_FORK") taskTypeName = "dynamic_fork"
-
-        const count = countRef.current
-        const newTaskName = `${taskTypeName}_${count}`
-        const newTaskRef = `${taskTypeName}_ref_${count}`
-        countRef.current += 1
-
-        const taskData: any = {
-          name: newTaskName,
-          taskReferenceName: newTaskRef,
-          type: taskType,
-          inputParameters: {},
-        }
-
-        if (taskType === "HTTP") {
-          taskData.inputParameters = {
-            http_request: {
-              method: "GET",
-              uri: "",
-            },
-          }
-        } else if (taskType === "DECISION") {
-          taskData.decisionCases = { true: [], false: [] }
-          taskData.defaultCase = []
-        } else if (taskType === "FORK_JOIN") {
-          taskData.forkTasks = [[], []]
-        } else if (taskType === "JSON_JQ_TRANSFORM") {
-          taskData.inputParameters = {
-            queryExpression: ".[]",
-          }
-        } else if (taskType === "DYNAMIC_FORK") {
-          taskData.dynamicForkTasksParam = "dynamicTasks"
-          taskData.dynamicForkTasksInputParamName = "dynamicTasksInput"
-          taskData.inputParameters = {
-            dynamicTasks: [],
-            dynamicTasksInput: {},
-          }
-        }
-
-        setBranchSelection({
-          isOpen: true,
-          branches,
-          afterNodeId,
-          taskType,
-          taskData,
-        })
+        console.log("[v0] Decision node: branches have direct plus buttons, skipping branch selection")
         return
       }
 
       if (afterNode.data?.taskType === "FORK_JOIN" || afterNode.data?.taskType === "FORK_JOIN_DYNAMIC") {
-        const branchCount = afterNode.data?.branchCount || 2
-        const branches = Array.from({ length: branchCount }, (_, i) => `Branch ${i + 1}`)
-
-        let taskTypeName = taskType.toLowerCase()
-        if (taskType === "WORKER") taskTypeName = "worker_task"
-        else if (taskType === "FORK_JOIN") taskTypeName = "fork"
-        else if (taskType === "JOIN") taskTypeName = "join"
-        else if (taskType === "DECISION") taskTypeName = "decision"
-        else if (taskType === "JSON_JQ_TRANSFORM") taskTypeName = "json_jq"
-        else if (taskType === "DYNAMIC_FORK") taskTypeName = "dynamic_fork"
-
-        const count = countRef.current
-        const newTaskName = `${taskTypeName}_${count}`
-        const newTaskRef = `${taskTypeName}_ref_${count}`
-        countRef.current += 1
-
-        const taskData: any = {
-          name: newTaskName,
-          taskReferenceName: newTaskRef,
-          type: taskType,
-          inputParameters: {},
-        }
-
-        if (taskType === "HTTP") {
-          taskData.inputParameters = {
-            http_request: {
-              method: "GET",
-              uri: "",
-            },
-          }
-        } else if (taskType === "DECISION") {
-          taskData.decisionCases = {
-            true: [],
-            false: [],
-          }
-          taskData.defaultCase = []
-        } else if (taskType === "FORK_JOIN") {
-          taskData.forkTasks = [[], []]
-        } else if (taskType === "JSON_JQ_TRANSFORM") {
-          taskData.inputParameters = {
-            queryExpression: ".[]",
-          }
-        } else if (taskType === "DYNAMIC_FORK") {
-          taskData.dynamicForkTasksParam = "dynamicTasks"
-          taskData.dynamicForkTasksInputParamName = "dynamicTasksInput"
-          taskData.inputParameters = {
-            dynamicTasks: [],
-            dynamicTasksInput: {},
-          }
-        }
-
-        setBranchSelection({
-          isOpen: true,
-          branches,
-          afterNodeId,
-          taskType,
-          taskData,
-        })
+        console.log("[v0] Fork node: branches have direct plus buttons, skipping branch selection")
         return
       }
 
       if (afterNode.data?.taskType === "DYNAMIC_FORK") {
-        const branches = ["Branch 1"]
-
-        let taskTypeName = taskType.toLowerCase()
-        if (taskType === "WORKER") taskTypeName = "worker_task"
-        else if (taskType === "FORK_JOIN") taskTypeName = "fork"
-        else if (taskType === "JOIN") taskTypeName = "join"
-        else if (taskType === "DECISION") taskTypeName = "decision"
-        else if (taskType === "JSON_JQ_TRANSFORM") taskTypeName = "json_jq"
-        else if (taskType === "DYNAMIC_FORK") taskTypeName = "dynamic_fork"
-
-        const count = countRef.current
-        const newTaskName = `${taskTypeName}_${count}`
-        const newTaskRef = `${taskTypeName}_ref_${count}`
-        countRef.current += 1
-
-        const taskData: any = {
-          name: newTaskName,
-          taskReferenceName: newTaskRef,
-          type: taskType,
-          inputParameters: {},
-        }
-
-        if (taskType === "HTTP") {
-          taskData.inputParameters = {
-            http_request: {
-              method: "GET",
-              uri: "",
-            },
-          }
-        } else if (taskType === "DECISION") {
-          taskData.decisionCases = { true: [], false: [] }
-          taskData.defaultCase = []
-        } else if (taskType === "FORK_JOIN") {
-          taskData.forkTasks = [[], []]
-        } else if (taskType === "JSON_JQ_TRANSFORM") {
-          taskData.inputParameters = {
-            queryExpression: ".[]",
-          }
-        } else if (taskType === "DYNAMIC_FORK") {
-          taskData.dynamicForkTasksParam = "dynamicTasks"
-          taskData.dynamicForkTasksInputParamName = "dynamicTasksInput"
-          taskData.inputParameters = {
-            dynamicTasks: [],
-            dynamicTasksInput: {},
-          }
-        }
-
-        setBranchSelection({
-          isOpen: true,
-          branches,
-          afterNodeId,
-          taskType,
-          taskData,
-        })
+        console.log("[v0] Dynamic fork node: branches have direct plus buttons, skipping branch selection")
         return
       }
 
@@ -695,35 +523,6 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
     [setNodes, setEdges, addTask],
   )
 
-  const handleBranchSelect = useCallback(
-    (branch: string) => {
-      if (!branchSelection) return
-
-      const { afterNodeId, taskData } = branchSelection
-      const afterNode = nodesRef.current.find((n) => n.id === afterNodeId)
-
-      if (!afterNode) return
-
-      const afterTaskRef = afterNode.data?.taskReferenceName
-
-      if (afterNode.data?.taskType === "DECISION" || afterNode.data?.taskType === "SWITCH") {
-        console.log("[v0] Adding task to decision branch:", { afterTaskRef, branch })
-        addTaskToBranch(taskData, afterTaskRef, branch)
-      } else if (afterNode.data?.taskType === "FORK_JOIN" || afterNode.data?.taskType === "FORK_JOIN_DYNAMIC") {
-        const branchIndex = Number.parseInt(branch.replace("Branch ", "")) - 1
-        console.log("[v0] Adding task to fork branch:", { afterTaskRef, branchIndex })
-        addTaskToForkBranch(taskData, afterTaskRef, branchIndex)
-      } else if (afterNode.data?.taskType === "DYNAMIC_FORK") {
-        const branchIndex = Number.parseInt(branch.replace("Branch ", "")) - 1
-        console.log("[v0] Adding task to dynamic fork branch:", { afterTaskRef, branchIndex })
-        addTaskToForkBranch(taskData, afterTaskRef, branchIndex)
-      }
-
-      setBranchSelection(null)
-    },
-    [branchSelection, addTaskToBranch, addTaskToForkBranch],
-  )
-
   const removeNode = useCallback(
     (nodeId: string) => {
       setNodes((nds) => nds.filter((n) => n.id !== nodeId))
@@ -738,15 +537,18 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
           target: outgoingEdge.target,
           type: "smoothstep",
           animated: false,
+          style: {
+            strokeWidth: 2,
+            stroke: "#64748b",
+          },
+          pathOptions: {
+            borderRadius: 20,
+          },
           markerEnd: {
             type: MarkerType.ArrowClosed,
             width: 20,
             height: 20,
             color: "#64748b",
-          },
-          style: {
-            strokeWidth: 2,
-            stroke: "#64748b",
           },
         }
 
@@ -815,15 +617,6 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
         <Background color="#64748b" gap={16} size={1.5} variant="dots" />
         <Controls />
       </ReactFlow>
-
-      {branchSelection && (
-        <WorkflowBranchSelectionDialog
-          isOpen={branchSelection.isOpen}
-          branches={branchSelection.branches}
-          onSelect={handleBranchSelect}
-          onCancel={() => setBranchSelection(null)}
-        />
-      )}
     </div>
   )
 }

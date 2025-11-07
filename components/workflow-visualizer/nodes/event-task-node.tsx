@@ -15,7 +15,7 @@ interface EventTaskNodeProps {
 }
 
 export function EventTaskNode({ data, id }: EventTaskNodeProps) {
-  const isInBranch = id.includes("_case_") || id.includes("_fork_")
+  const isInBranch = id.includes("_case_")
 
   return (
     <div className="relative">

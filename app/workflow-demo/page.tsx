@@ -1,5 +1,6 @@
 "use client"
 import { WorkflowViewerTool } from "@/components/workflow-visualizer/workflow-viewer-tool"
+import { defaultWorkflowFormLocalization } from "@/lib/workflow-form-localization"
 import type { ConductorWorkflow } from "@/components/workflow-visualizer/types/conductor-types"
 
 const sampleWorkflow: ConductorWorkflow = {
@@ -106,13 +107,22 @@ const sampleWorkflow: ConductorWorkflow = {
 }
 
 export default function WorkflowDemoPage() {
-  const handleSave = () => {
-    console.log("[v0] Saved workflow")
+  const handleSave = (workflow: ConductorWorkflow) => {
+    console.log("[v0] Saved workflow:", workflow)
+    // Here you would typically send the workflow to your backend API
+    // Example: await fetch('/api/workflows', { method: 'POST', body: JSON.stringify(workflow) })
   }
 
   const handleCancel = () => {
     console.log("[v0] Cancelled changes")
   }
 
-  return <WorkflowViewerTool initialWorkflow={sampleWorkflow} onSave={handleSave} onCancel={handleCancel} />
+  return (
+    <WorkflowViewerTool
+      initialWorkflow={sampleWorkflow}
+      onSave={handleSave}
+      onCancel={handleCancel}
+      formLocalizedObj={defaultWorkflowFormLocalization}
+    />
+  )
 }

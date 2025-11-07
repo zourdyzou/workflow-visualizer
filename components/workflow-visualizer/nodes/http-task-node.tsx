@@ -23,7 +23,7 @@ interface HttpTaskNodeProps {
 export const HttpTaskNode = memo(function HttpTaskNode({ data, id }: HttpTaskNodeProps) {
   const { removeTask, showConfirmation, getTask } = useWorkflow()
 
-  const isInBranch = id.includes("_case_") || id.includes("_fork_")
+  const isInBranch = id.includes("_case_")
 
   const latestTask = getTask(data.taskReferenceName)
   const httpRequest = latestTask?.inputParameters?.http_request || {}

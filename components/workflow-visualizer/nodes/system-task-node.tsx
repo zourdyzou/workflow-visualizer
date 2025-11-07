@@ -21,7 +21,7 @@ interface SystemTaskNodeProps {
 export function SystemTaskNode({ data, id }: SystemTaskNodeProps) {
   const { removeTask, showConfirmation } = useWorkflow()
 
-  const isInBranch = id.includes("_case_") || id.includes("_fork_")
+  const isInBranch = id.includes("_case_")
 
   const getIcon = () => {
     const type = data.taskType.toLowerCase()
