@@ -4,23 +4,16 @@ import { createContext, useContext, useState, useCallback, type ReactNode } from
 import type { ConductorWorkflow, ConductorTask } from "../types/conductor-types"
 import { WorkflowConfirmationDialog } from "./workflow-confirmation-dialog"
 
-interface WorkflowContextType {
-  workflow: ConductorWorkflow
-  updateTask: (taskReferenceName: string, updates: Partial<ConductorTask>) => void
-  updateWorkflow: (updates: Partial<ConductorWorkflow>) => void
-  getTask: (taskReferenceName: string) => ConductorTask | undefined
-  addTask: (task: ConductorTask, afterTaskRef?: string) => void
-  removeTask: (taskReferenceName: string) => void
-  exportWorkflow: () => ConductorWorkflow
-  showConfirmation: (config: ConfirmationConfig) => void
-  addTaskToBranch: (task: ConductorTask, decisionTaskRef: string, branch: string) => void
-  addTaskToForkBranch: (task: ConductorTask, forkTaskRef: string, branchIndex: number) => void
-  addForkBranch: (forkTaskRef: string) => void
-  removeForkBranch: (forkTaskRef: string, branchIndex: number) => void
-  addDecisionCase: (decisionTaskRef: string) => void
-  removeDecisionCase: (decisionTaskRef: string, caseKey: string) => void
-}
-
+/**
+ * Configuration for the confirmation dialog.
+ *
+ * @interface ConfirmationConfig
+ * @property {string} title - Dialog title
+ * @property {string} description - Dialog description/message
+ * @property {() => void} onConfirm - Callback when user confirms
+ * @property {string} [confirmText] - Optional custom confirm button text (default: "Confirm")
+ * @property {string} [cancelText] - Optional custom cancel button text (default: "Cancel")
+ */
 interface ConfirmationConfig {
   title: string
   description: string
@@ -29,8 +22,83 @@ interface ConfirmationConfig {
   cancelText?: string
 }
 
+/**
+ * Workflow context type definition.
+ * Provides all methods and state for managing workflow and task data.
+ *
+ * @interface WorkflowContextType
+ */
+interface WorkflowContextType {
+  /** Current workflow state */
+  workflow: ConductorWorkflow
+
+  /** Update a specific task by its reference name */
+  updateTask: (taskReferenceName: string, updates: Partial<ConductorTask>) => void
+
+  /** Update workflow-level properties */
+  updateWorkflow: (updates: Partial<ConductorWorkflow>) => void
+
+  /** Retrieve a task by its reference name (searches recursively through all branches) */
+  getTask: (taskReferenceName: string) => ConductorTask | undefined
+
+  /** Add a new task to the workflow at the specified position */
+  addTask: (task: ConductorTask, afterTaskRef?: string) => void
+
+  /** Remove a task from the workflow by its reference name */
+  removeTask: (taskReferenceName: string) => void
+
+  /** Export the current workflow as a Conductor JSON object */
+  exportWorkflow: () => ConductorWorkflow
+
+  /** Show a confirmation dialog */
+  showConfirmation: (config: ConfirmationConfig) => void
+
+  /** Add a task to a specific branch of a DECISION task */
+  addTaskToBranch: (task: ConductorTask, decisionTaskRef: string, branch: string) => void
+
+  /** Add a task to a specific branch of a FORK_JOIN task */
+  addTaskToForkBranch: (task: ConductorTask, forkTaskRef: string, branchIndex: number) => void
+
+  /** Add a new empty branch to a FORK_JOIN task */
+  addForkBranch: (forkTaskRef: string) => void
+
+  /** Remove all tasks from a specific FORK_JOIN branch */
+  removeForkBranch: (forkTaskRef: string, branchIndex: number) => void
+
+  /** Add a new empty case to a DECISION task */
+  addDecisionCase: (decisionTaskRef: string) => void
+
+  /** Remove a specific case from a DECISION task */
+  removeDecisionCase: (decisionTaskRef: string, caseKey: string) => void
+}
+
 const WorkflowContext = createContext<WorkflowContextType | undefined>(undefined)
 
+/**
+ * WorkflowProvider - Context provider that manages workflow state and operations.
+ *
+ * This provider wraps the workflow editor and provides state management for the entire workflow,
+ * including tasks, branches, and nested structures. It handles all CRUD operations on workflow data.
+ *
+ * Features:
+ * - Centralized workflow state management
+ * - Recursive task search and update for nested structures (FORK, DECISION)
+ * - Automatic JOIN task management for FORK_JOIN tasks
+ * - Confirmation dialogs for destructive operations
+ * - Immutable state updates
+ *
+ * @component
+ * @param {Object} props
+ * @param {ReactNode} props.children - Child components that need access to workflow context
+ * @param {ConductorWorkflow} props.initialWorkflow - Initial workflow definition
+ *
+ * @example
+ * \`\`\`tsx
+ * <WorkflowProvider initialWorkflow={myWorkflow}>
+ *   <WorkflowEditor />
+ * </WorkflowProvider>
+ * \`\`\`
+ */
 export function WorkflowProvider({
   children,
   initialWorkflow,
@@ -413,6 +481,31 @@ export function WorkflowProvider({
   )
 }
 
+/**
+ * useWorkflow - Custom hook to access the workflow context.
+ *
+ * Must be used within a WorkflowProvider component tree.
+ * Provides access to all workflow state and operations.
+ *
+ * @returns {WorkflowContextType} The workflow context value
+ * @throws {Error} If used outside of a WorkflowProvider
+ *
+ * @example
+ * \`\`\`tsx
+ * function MyComponent() {
+ *   const { workflow, updateTask, addTask } = useWorkflow()
+ *
+ *   const handleUpdateTask = () => {
+ *     updateTask('worker_task_1', {
+ *       name: 'Updated Worker Task',
+ *       inputParameters: { key: 'value' }
+ *     })
+ *   }
+ *
+ *   return <button onClick={handleUpdateTask}>Update Task</button>
+ * }
+ * \`\`\`
+ */
 export function useWorkflow() {
   const context = useContext(WorkflowContext)
   if (!context) {

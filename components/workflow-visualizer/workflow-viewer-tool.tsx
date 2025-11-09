@@ -7,6 +7,15 @@ import { WorkflowProvider, useWorkflow } from "./context/workflow-context"
 import type { ConductorWorkflow } from "./types/conductor-types"
 import { defaultWorkflowFormLocalization } from "@/lib/workflow-form-localization"
 
+/**
+ * Props for the WorkflowViewerTool component.
+ *
+ * @interface WorkflowViewerToolProps
+ * @property {ConductorWorkflow} initialWorkflow - The initial workflow definition to visualize and edit
+ * @property {(workflow: ConductorWorkflow) => void} [onSave] - Optional callback fired when the user saves changes, receives the exported workflow
+ * @property {() => void} [onCancel] - Optional callback fired when the user cancels editing
+ * @property {WorkflowFormPanelLocalization} [formLocalizedObj] - Optional localization object for the form panel. Defaults to English if not provided
+ */
 interface WorkflowViewerToolProps {
   initialWorkflow: ConductorWorkflow
   onSave?: (workflow: ConductorWorkflow) => void
@@ -14,6 +23,13 @@ interface WorkflowViewerToolProps {
   formLocalizedObj?: WorkflowFormPanelLocalization
 }
 
+/**
+ * Internal content component that uses workflow context.
+ * Manages the selected node state and panel visibility.
+ *
+ * @private
+ * @component
+ */
 function WorkflowViewerToolContent({
   onSave,
   onCancel,
@@ -49,6 +65,9 @@ function WorkflowViewerToolContent({
         <WorkflowVisualizer
           workflow={workflow}
           onNodeClick={(node) => {
+            if (node.id === "start" || node.id === "end" || node.type === "startEnd") {
+              return
+            }
             setSelectedNode(node)
             setIsPanelOpen(true)
           }}
@@ -68,6 +87,42 @@ function WorkflowViewerToolContent({
   )
 }
 
+/**
+ * WorkflowViewerTool - Main entry component for the workflow visualization and editing tool.
+ *
+ * This is the primary component to use for integrating the workflow visualizer into your application.
+ * It combines a visual workflow diagram (using React Flow) with a form panel for editing task properties.
+ *
+ * Features:
+ * - Interactive workflow visualization with drag-and-drop node positioning
+ * - Add, edit, and delete workflow tasks
+ * - Support for all Conductor task types (WORKER, HTTP, DECISION, FORK_JOIN, etc.)
+ * - Real-time workflow state management
+ * - Localization support for internationalization
+ * - Export workflow as Conductor JSON format
+ *
+ * @component
+ * @example
+ * ```tsx
+ * import { WorkflowViewerTool } from '@/components/workflow-visualizer/workflow-viewer-tool'
+ * import { defaultWorkflowFormLocalization } from '@/lib/workflow-form-localization'
+ *
+ * function MyWorkflowEditor() {
+ *   const handleSave = (workflow) => {
+ *     console.log('Workflow saved:', workflow)
+ *     // Send to API or save locally
+ *   }
+ *
+ *   return (
+ *     <WorkflowViewerTool
+ *       initialWorkflow={myWorkflowData}
+ *       onSave={handleSave}
+ *       formLocalizedObj={defaultWorkflowFormLocalization}
+ *     />
+ *   )
+ * }
+ * ```
+ */
 export function WorkflowViewerTool({
   initialWorkflow,
   onSave,

@@ -1,3 +1,23 @@
+/**
+ * Localization interface for the WorkflowFormPanel component.
+ * Contains all the text labels and strings used throughout the workflow form panel UI.
+ *
+ * @interface WorkflowFormPanelLocalization
+ *
+ * @example
+ * \`\`\`tsx
+ * const customLocalization: WorkflowFormPanelLocalization = {
+ *   workflowTab: "Flujo de trabajo",
+ *   taskTab: "Tarea",
+ *   // ... other Spanish translations
+ * }
+ *
+ * <WorkflowViewerTool
+ *   initialWorkflow={myWorkflow}
+ *   formLocalizedObj={customLocalization}
+ * />
+ * \`\`\`
+ */
 export interface WorkflowFormPanelLocalization {
   // Tab labels
   workflowTab: string
@@ -93,6 +113,23 @@ export interface WorkflowFormPanelLocalization {
   noTasksAvailable: string
 }
 
+/**
+ * Default English localization for the WorkflowFormPanel component.
+ * Provides all standard labels and text strings in English.
+ *
+ * @constant
+ * @type {WorkflowFormPanelLocalization}
+ *
+ * @example
+ * \`\`\`tsx
+ * import { defaultWorkflowFormLocalization } from '@/lib/workflow-form-localization'
+ *
+ * <WorkflowViewerTool
+ *   initialWorkflow={myWorkflow}
+ *   formLocalizedObj={defaultWorkflowFormLocalization}
+ * />
+ * \`\`\`
+ */
 export const defaultWorkflowFormLocalization: WorkflowFormPanelLocalization = {
   workflowTab: "Workflow",
   taskTab: "Task",

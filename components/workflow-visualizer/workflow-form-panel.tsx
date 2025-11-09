@@ -10,8 +10,13 @@ import { Pencil, CirclePlus, Trash2, ChevronsRight } from "lucide-react"
 import { useState, useEffect } from "react"
 import type { ConductorWorkflow } from "./types/conductor-types"
 import { useWorkflow } from "./context/workflow-context"
-import CodeEditor from "@uiw/react-textarea-code-editor"
-import { type WorkflowFormPanelLocalization, defaultWorkflowFormLocalization } from "@/lib/workflow-form-localization"
+import CodeMirror from "@uiw/react-codemirror"
+import { json } from "@codemirror/lang-json"
+import { javascript } from "@codemirror/lang-javascript"
+
+// Import the missing types and default values
+import type { WorkflowFormPanelLocalization } from "@/lib/workflow-form-localization"
+import { defaultWorkflowFormLocalization } from "@/lib/workflow-form-localization"
 
 export type { WorkflowFormPanelLocalization } from "@/lib/workflow-form-localization"
 
@@ -579,14 +584,19 @@ function HttpTaskForm({
         </div>
 
         {bodyType === "json" ? (
-          <div className="space-y-2">
-            <Label htmlFor="body-code">{localizedObj.code}</Label>
-            <Textarea
-              id="body-code"
+          <div className="border rounded-md overflow-hidden">
+            <CodeMirror
               value={bodyStr}
-              onChange={(e) => setBodyStr(e.target.value)}
-              rows={6}
-              className="font-mono text-sm resize-none w-full"
+              height="200px"
+              extensions={[json()]}
+              onChange={(value) => setBodyStr(value)}
+              theme="light"
+              basicSetup={{
+                lineNumbers: true,
+                highlightActiveLineGutter: true,
+                highlightActiveLine: true,
+                foldGutter: true,
+              }}
             />
           </div>
         ) : (
@@ -1257,17 +1267,17 @@ function JsonJqTransformForm({
       <div className="space-y-2">
         <Label htmlFor="query-expression">{localizedObj.jqQueryExpression}</Label>
         <div className="border rounded-md overflow-hidden">
-          <CodeEditor
+          <CodeMirror
             value={queryExpression}
-            language="js"
-            placeholder={localizedObj.jqPlaceholder}
-            onChange={(e) => setQueryExpression(e.target.value)}
-            padding={12}
-            style={{
-              fontSize: 13,
-              fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
-              backgroundColor: "#f9fafb",
-              minHeight: "120px",
+            height="120px"
+            extensions={[javascript()]}
+            onChange={(value) => setQueryExpression(value)}
+            theme="light"
+            basicSetup={{
+              lineNumbers: true,
+              highlightActiveLineGutter: false,
+              highlightActiveLine: false,
+              foldGutter: false,
             }}
           />
         </div>
@@ -1423,7 +1433,7 @@ function JoinTaskForm({
                   <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
                   <span className="font-mono text-xs">{ref}</span>
                   <span className="text-gray-400">
-                    ({localizedObj.branchLabel} {index + 1})
+                    {localizedObj.branchLabel} {index + 1}
                   </span>
                 </div>
               ))}
