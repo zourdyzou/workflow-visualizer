@@ -1,50 +1,33 @@
 /**
- * Localization interface for the WorkflowFormPanel component.
- * Contains all the text labels and strings used throughout the workflow form panel UI.
+ * Workflow Form Panel Localization Interface
  *
- * @interface WorkflowFormPanelLocalization
+ * This interface defines all the localized strings used throughout the workflow form panels.
+ * Implement this interface with your desired language/translations to customize the UI text.
  *
  * @example
- * \`\`\`tsx
- * const customLocalization: WorkflowFormPanelLocalization = {
- *   workflowTab: "Flujo de trabajo",
- *   taskTab: "Tarea",
- *   // ... other Spanish translations
+ * ```typescript
+ * const spanishLocalization: WorkflowFormPanelLocalization = {
+ *   taskName: "Nombre de Tarea",
+ *   taskReferenceName: "Nombre de Referencia",
+ *   // ... other translations
  * }
- *
- * <WorkflowViewerTool
- *   initialWorkflow={myWorkflow}
- *   formLocalizedObj={customLocalization}
- * />
- * \`\`\`
+ * ```
  */
 export interface WorkflowFormPanelLocalization {
   // Tab labels
   workflowTab: string
   taskTab: string
 
-  // Workflow form labels
-  workflowName: string
-  workflowDescription: string
-  workflowVersion: string
-  timeout: string
-  timeoutPolicy: string
-  failureWorkflow: string
-  restartable: string
-  workflowStatusListener: string
-
-  // Timeout policy options
-  alertOnly: string
-  timeOutWorkflow: string
-
-  // Task form common labels
-  taskName: string
-  taskReferenceName: string
-  taskDefinition: string
-  referenceName: string
-  inputParameters: string
+  // Common actions
+  save: string
+  cancel: string
   addParameter: string
   empty: string
+
+  // Common labels
+  taskName: string
+  taskReferenceName: string
+  inputParameters: string
   key: string
   value: string
   type: string
@@ -56,7 +39,21 @@ export interface WorkflowFormPanelLocalization {
   typeNull: string
   typeObjectArray: string
 
-  // HTTP task labels
+  // Workflow form
+  workflowName: string
+  workflowDescription: string
+  workflowVersion: string
+  timeout: string
+  timeoutPolicy: string
+  alertOnly: string
+  timeOutWorkflow: string
+  failureWorkflow: string
+  restartable: string
+  workflowStatusListener: string
+
+  // HTTP task
+  taskDefinition: string
+  referenceName: string
   method: string
   url: string
   accept: string
@@ -65,25 +62,24 @@ export interface WorkflowFormPanelLocalization {
   body: string
   json: string
   parameters: string
-  code: string
 
-  // Event task labels
+  // Event task
   eventName: string
   eventSink: string
 
-  // Start Workflow task labels
+  // Start Workflow task
   workflowNameField: string
   workflowVersionField: string
 
-  // Decision task labels
+  // Decision task
   decisionCases: string
   defaultCase: string
   caseLabelPrefix: string
-  noTasks: string
   tasks: string
   task: string
+  noTasks: string
 
-  // Fork/Join task labels
+  // Fork/Join task
   forkBranches: string
   branchLabelPrefix: string
   joinNote: string
@@ -93,122 +89,151 @@ export interface WorkflowFormPanelLocalization {
   joinOnBranchReferences: string
   branchLabel: string
 
-  // JSON JQ Transform labels
+  // JSON JQ Transform
   jqQueryExpression: string
-  jqPlaceholder: string
   jqHelpText: string
 
-  // Dynamic Fork labels
+  // Dynamic Fork
   dynamicTasksParameter: string
   dynamicTasksParameterHelp: string
   dynamicTasksInputParameter: string
   dynamicTasksInputParameterHelp: string
   dynamicForkNote: string
 
-  // Button labels
-  cancel: string
-  save: string
+  // TERMINATE task
+  terminationStatusLabel: string
+  terminationStatusCompleted: string
+  terminationStatusFailed: string
+  terminationStatusTerminated: string
+  terminationStatusHelp: string
+  terminationReasonLabel: string
+  terminationReasonPlaceholder: string
+  terminationReasonHelp: string
+  warningLabel: string
+  terminationWarning: string
 
   // Misc
   noTasksAvailable: string
 }
 
 /**
- * Default English localization for the WorkflowFormPanel component.
- * Provides all standard labels and text strings in English.
+ * Default English localization for Workflow Form Panel
  *
- * @constant
- * @type {WorkflowFormPanelLocalization}
+ * This object provides all the default English text used throughout the workflow visualizer forms.
+ * Use this as a reference when creating custom localizations.
  *
  * @example
- * \`\`\`tsx
+ * ```typescript
  * import { defaultWorkflowFormLocalization } from '@/lib/workflow-form-localization'
  *
- * <WorkflowViewerTool
- *   initialWorkflow={myWorkflow}
- *   formLocalizedObj={defaultWorkflowFormLocalization}
+ * <WorkflowFormPanel
+ *   localizedObj={defaultWorkflowFormLocalization}
+ *   // ... other props
  * />
- * \`\`\`
+ * ```
  */
 export const defaultWorkflowFormLocalization: WorkflowFormPanelLocalization = {
+  // Tab labels
   workflowTab: "Workflow",
   taskTab: "Task",
 
-  workflowName: "Workflow Name",
-  workflowDescription: "Description",
-  workflowVersion: "Version",
-  timeout: "Timeout (seconds)",
-  timeoutPolicy: "Timeout Policy",
-  failureWorkflow: "Failure Workflow",
-  restartable: "Restartable",
-  workflowStatusListener: "Workflow Status Listener Enabled",
+  // Common actions
+  save: "Save Changes",
+  cancel: "Cancel",
+  addParameter: "Add Parameter",
+  empty: "No parameters",
 
-  alertOnly: "Alert Only",
-  timeOutWorkflow: "Time Out Workflow",
-
+  // Common labels
   taskName: "Task Name",
   taskReferenceName: "Task Reference Name",
-  taskDefinition: "Task Definition",
-  referenceName: "Reference Name",
-  inputParameters: "Input parameters",
-  addParameter: "Add parameter",
-  empty: "(empty)",
+  inputParameters: "Input Parameters",
   key: "Key",
   value: "Value",
   type: "Type",
 
+  // Type options
   typeString: "String",
   typeNumber: "Number",
   typeBoolean: "Boolean",
   typeNull: "Null",
   typeObjectArray: "Object/Array",
 
+  // Workflow form
+  workflowName: "Workflow Name",
+  workflowDescription: "Description",
+  workflowVersion: "Version",
+  timeout: "Timeout (seconds)",
+  timeoutPolicy: "Timeout Policy",
+  alertOnly: "Alert Only",
+  timeOutWorkflow: "Time Out Workflow",
+  failureWorkflow: "Failure Workflow",
+  restartable: "Restartable",
+  workflowStatusListener: "Enable Workflow Status Listener",
+
+  // HTTP task
+  taskDefinition: "Task Name",
+  referenceName: "Task Reference Name",
   method: "Method",
   url: "URL",
   accept: "Accept",
-  contentType: "Content-Type",
+  contentType: "Content Type",
   maximumAttempts: "Maximum Attempts",
-  body: "Body:",
+  body: "Body",
   json: "JSON",
   parameters: "Parameters",
-  code: "Code",
 
+  // Event task
   eventName: "Event Name",
   eventSink: "Event Sink",
 
+  // Start Workflow task
   workflowNameField: "Workflow Name",
   workflowVersionField: "Workflow Version",
 
+  // Decision task
   decisionCases: "Decision Cases",
   defaultCase: "Default Case",
-  caseLabelPrefix: "Case:",
-  noTasks: "No tasks",
+  caseLabelPrefix: "Case",
   tasks: "tasks",
   task: "task",
+  noTasks: "No tasks in this case",
 
+  // Fork/Join task
   forkBranches: "Fork Branches",
   branchLabelPrefix: "Branch",
   joinNote:
-    "JOIN tasks are automatically created and managed by the system. They wait for all branches of a FORK to complete before continuing the workflow.",
+    "JOIN tasks automatically synchronize parallel branches. This task waits for all configured branches to complete before proceeding.",
   joinsFromFork: "Joins From Fork",
-  forkTaskLabel: "Fork task:",
+  forkTaskLabel: "Fork Task:",
   numberOfBranches: "Number of Branches",
   joinOnBranchReferences: "Join On (Branch References)",
   branchLabel: "Branch",
 
+  // JSON JQ Transform
   jqQueryExpression: "JQ Query Expression",
-  jqPlaceholder: ".[] | select(.age > 18) | .name",
   jqHelpText: "Enter a jq expression to transform JSON data (e.g., .users[].name)",
 
+  // Dynamic Fork
   dynamicTasksParameter: "Dynamic Tasks Parameter",
-  dynamicTasksParameterHelp: "Name of the input parameter containing the array of tasks to fork",
+  dynamicTasksParameterHelp: "Name of the input parameter that contains the list of tasks to fork dynamically",
   dynamicTasksInputParameter: "Dynamic Tasks Input Parameter",
-  dynamicTasksInputParameterHelp: "Name of the input parameter containing the map of inputs for each forked task",
+  dynamicTasksInputParameterHelp: "Name of the input parameter that contains the input data for each dynamic task",
   dynamicForkNote:
-    "The number of branches and their tasks are determined at runtime based on the input parameters provided by a preceding task.",
+    "Dynamic Fork tasks create parallel branches at runtime based on input parameters. The tasks to execute are determined during workflow execution.",
 
-  cancel: "Cancel",
-  save: "Save",
+  // TERMINATE task
+  terminationStatusLabel: "Status",
+  terminationStatusCompleted: "COMPLETED",
+  terminationStatusFailed: "FAILED",
+  terminationStatusTerminated: "TERMINATED",
+  terminationStatusHelp: "Choose how the workflow should be marked when this task executes",
+  terminationReasonLabel: "Reason",
+  terminationReasonPlaceholder: "Enter reason for termination",
+  terminationReasonHelp: "Provide a reason for termination. This will be recorded in the workflow execution.",
+  warningLabel: "Warning:",
+  terminationWarning:
+    "When this task executes, the workflow will immediately terminate with the specified status. No subsequent tasks will be executed.",
 
+  // Misc
   noTasksAvailable: "No tasks available",
 }

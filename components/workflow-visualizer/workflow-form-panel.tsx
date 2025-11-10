@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Pencil, CirclePlus, Trash2, ChevronsRight } from "lucide-react"
+import { Pencil, CirclePlus, Trash2, ChevronsRight, CheckCircle, XCircle, StopCircle } from "lucide-react"
 import { useState, useEffect } from "react"
 import type { ConductorWorkflow } from "./types/conductor-types"
 import { useWorkflow } from "./context/workflow-context"
@@ -14,11 +14,8 @@ import CodeMirror from "@uiw/react-codemirror"
 import { json } from "@codemirror/lang-json"
 import { javascript } from "@codemirror/lang-javascript"
 
-// Import the missing types and default values
 import type { WorkflowFormPanelLocalization } from "@/lib/workflow-form-localization"
 import { defaultWorkflowFormLocalization } from "@/lib/workflow-form-localization"
-
-export type { WorkflowFormPanelLocalization } from "@/lib/workflow-form-localization"
 
 interface WorkflowFormPanelProps {
   workflow: ConductorWorkflow
@@ -37,10 +34,12 @@ export function WorkflowFormPanel({
   onOpenChange,
   onSave,
   onCancel,
-  localizedObj = defaultWorkflowFormLocalization, // Use default if not provided
+  localizedObj,
 }: WorkflowFormPanelProps) {
   const [configTab, setConfigTab] = useState<"workflow" | "task">("workflow")
   const { workflow: contextWorkflow } = useWorkflow()
+
+  const localization = localizedObj || defaultWorkflowFormLocalization
 
   const firstTask = contextWorkflow?.tasks?.[0]
   const displayTask =
@@ -96,7 +95,7 @@ export function WorkflowFormPanel({
                   : "text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-50"
               }`}
             >
-              {localizedObj.workflowTab}
+              {localization.workflowTab}
             </button>
             <button
               onClick={() => setConfigTab("task")}
@@ -106,7 +105,7 @@ export function WorkflowFormPanel({
                   : "text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-50"
               }`}
             >
-              {localizedObj.taskTab}
+              {localization.taskTab}
             </button>
           </div>
         </div>
@@ -115,26 +114,26 @@ export function WorkflowFormPanel({
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-6 py-4">
         {configTab === "workflow" ? (
-          <WorkflowForm workflow={workflow} localizedObj={localizedObj} />
+          <WorkflowForm workflow={workflow} localizedObj={localization} />
         ) : displayTask ? (
           <TaskForm
             key={displayTask.id}
             task={displayTask.data}
             taskReferenceName={actualTaskReferenceName}
-            localizedObj={localizedObj}
+            localizedObj={localization}
           />
         ) : (
-          <div className="text-center text-gray-500 py-8">{localizedObj.noTasksAvailable}</div>
+          <div className="text-center text-gray-500 py-8">{localization.noTasksAvailable}</div>
         )}
       </div>
 
       {/* Footer Actions */}
       <div className="border-t px-6 py-4 flex gap-3">
         <Button variant="outline" onClick={onCancel} className="flex-1 bg-transparent">
-          {localizedObj.cancel}
+          {localization.cancel}
         </Button>
         <Button onClick={onSave} className="flex-1 bg-sky-400 hover:bg-sky-500 text-white">
-          {localizedObj.save}
+          {localization.save}
         </Button>
       </div>
     </div>
@@ -244,6 +243,9 @@ function TaskForm({
       {taskType === "DYNAMIC_FORK" && (
         <DynamicForkForm task={fullTask} taskReferenceName={taskReferenceName} localizedObj={localizedObj} />
       )}
+      {taskType === "TERMINATE" && (
+        <TerminateTaskForm task={fullTask} taskReferenceName={taskReferenceName} localizedObj={localizedObj} />
+      )}
     </div>
   )
 }
@@ -307,12 +309,16 @@ function SimpleTaskForm({
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor="task-name">{localizedObj.taskName}</Label>
+        <Label htmlFor="task-name" className="text-sm font-medium text-gray-700">
+          {localizedObj.taskName}
+        </Label>
         <Input id="task-name" value={taskName} onChange={(e) => setTaskName(e.target.value)} />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="task-ref">{localizedObj.taskReferenceName}</Label>
+        <Label htmlFor="task-ref" className="text-sm font-medium text-gray-700">
+          {localizedObj.taskReferenceName}
+        </Label>
         <Input id="task-ref" value={taskRef} onChange={(e) => setTaskRef(e.target.value)} />
       </div>
 
@@ -333,7 +339,9 @@ function SimpleTaskForm({
               {parameters.map((param, index) => (
                 <div key={index} className="grid grid-cols-[1fr_2fr_140px_auto] gap-3 items-end">
                   <div className="space-y-2">
-                    <Label htmlFor={`param-key-${index}`}>{localizedObj.key}</Label>
+                    <Label htmlFor={`param-key-${index}`} className="text-sm font-medium text-gray-700">
+                      {localizedObj.key}
+                    </Label>
                     <Input
                       id={`param-key-${index}`}
                       value={param.key}
@@ -347,7 +355,9 @@ function SimpleTaskForm({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor={`param-value-${index}`}>{localizedObj.value}</Label>
+                    <Label htmlFor={`param-value-${index}`} className="text-sm font-medium text-gray-700">
+                      {localizedObj.value}
+                    </Label>
                     <Input
                       id={`param-value-${index}`}
                       value={param.value}
@@ -361,7 +371,9 @@ function SimpleTaskForm({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor={`param-type-${index}`}>{localizedObj.type}</Label>
+                    <Label htmlFor={`param-type-${index}`} className="text-sm font-medium text-gray-700">
+                      {localizedObj.type}
+                    </Label>
                     <Select
                       value={param.type}
                       onValueChange={(value) => {
@@ -497,19 +509,25 @@ function HttpTaskForm({
     <div className="space-y-6">
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="task-name">{localizedObj.taskDefinition}</Label>
+          <Label htmlFor="task-name" className="text-sm font-medium text-gray-700">
+            {localizedObj.taskDefinition}
+          </Label>
           <Input id="task-name" value={taskName} onChange={(e) => setTaskName(e.target.value)} className="w-full" />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="task-ref">{localizedObj.referenceName}</Label>
+          <Label htmlFor="task-ref" className="text-sm font-medium text-gray-700">
+            {localizedObj.referenceName}
+          </Label>
           <Input id="task-ref" value={taskRef} onChange={(e) => setTaskRef(e.target.value)} className="w-full" />
         </div>
       </div>
 
       <div className="grid grid-cols-[140px_1fr] gap-4">
         <div className="space-y-2">
-          <Label htmlFor="method">{localizedObj.method}</Label>
+          <Label htmlFor="method" className="text-sm font-medium text-gray-700">
+            {localizedObj.method}
+          </Label>
           <Select value={method} onValueChange={setMethod}>
             <SelectTrigger id="method" className="w-full">
               <SelectValue />
@@ -527,7 +545,9 @@ function HttpTaskForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="url">{localizedObj.url}</Label>
+          <Label htmlFor="url" className="text-sm font-medium text-gray-700">
+            {localizedObj.url}
+          </Label>
           <Input
             id="url"
             value={uri}
@@ -540,12 +560,16 @@ function HttpTaskForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="accept">{localizedObj.accept}</Label>
+          <Label htmlFor="accept" className="text-sm font-medium text-gray-700">
+            {localizedObj.accept}
+          </Label>
           <Input id="accept" value={accept} onChange={(e) => setAccept(e.target.value)} className="w-full" />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="content-type">{localizedObj.contentType}</Label>
+          <Label htmlFor="content-type" className="text-sm font-medium text-gray-700">
+            {localizedObj.contentType}
+          </Label>
           <Input
             id="content-type"
             value={contentType}
@@ -556,7 +580,9 @@ function HttpTaskForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="max-attempts">{localizedObj.maximumAttempts}</Label>
+        <Label htmlFor="max-attempts" className="text-sm font-medium text-gray-700">
+          {localizedObj.maximumAttempts}
+        </Label>
         <Input id="max-attempts" type="number" placeholder="3" className="w-full" />
       </div>
 
@@ -614,7 +640,9 @@ function HttpTaskForm({
                 {bodyParameters.map((param, index) => (
                   <div key={index} className="grid grid-cols-[1fr_2fr_auto] gap-3 items-end">
                     <div className="space-y-2">
-                      <Label htmlFor={`param-key-${index}`}>{localizedObj.key}</Label>
+                      <Label htmlFor={`param-key-${index}`} className="text-sm font-medium text-gray-700">
+                        {localizedObj.key}
+                      </Label>
                       <Input
                         id={`param-key-${index}`}
                         value={param.key}
@@ -628,7 +656,9 @@ function HttpTaskForm({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor={`param-value-${index}`}>{localizedObj.value}</Label>
+                      <Label htmlFor={`param-value-${index}`} className="text-sm font-medium text-gray-700">
+                        {localizedObj.value}
+                      </Label>
                       <Input
                         id={`param-value-${index}`}
                         value={param.value}
@@ -1441,6 +1471,104 @@ function JoinTaskForm({
           </div>
         </div>
       )}
+    </>
+  )
+}
+
+/**
+ * Form component for TERMINATE task configuration
+ *
+ * TERMINATE tasks end the workflow execution with a specific status and reason.
+ * They are commonly used in error handling or conditional workflow termination scenarios.
+ *
+ * @param task - The TERMINATE task data
+ * @param taskReferenceName - Unique reference name for the task
+ * @param localizedObj - Localization object for form labels
+ */
+function TerminateTaskForm({
+  task,
+  taskReferenceName,
+  localizedObj,
+}: { task: any; taskReferenceName: string; localizedObj: WorkflowFormPanelLocalization }) {
+  const { updateTask } = useWorkflow()
+
+  const [taskName, setTaskName] = useState(task.name || "terminate")
+  const [taskRef, setTaskRef] = useState(task.taskReferenceName || taskReferenceName)
+  const [terminationStatus, setTerminationStatus] = useState(task.inputParameters?.terminationStatus || "COMPLETED")
+  const [terminationReason, setTerminationReason] = useState(task.inputParameters?.terminationReason || "")
+
+  useEffect(() => {
+    updateTask(taskReferenceName, {
+      name: taskName,
+      taskReferenceName: taskRef,
+      inputParameters: {
+        terminationStatus,
+        terminationReason,
+      },
+    })
+  }, [taskName, taskRef, terminationStatus, terminationReason, taskReferenceName, updateTask])
+
+  // Removed getStatusIcon helper function and simplified icon rendering
+  return (
+    <>
+      <div className="space-y-2">
+        <Label htmlFor="terminate-task-name">{localizedObj.taskName}</Label>
+        <Input id="terminate-task-name" value={taskName} onChange={(e) => setTaskName(e.target.value)} />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="terminate-task-ref">{localizedObj.taskReferenceName}</Label>
+        <Input id="terminate-task-ref" value={taskRef} onChange={(e) => setTaskRef(e.target.value)} />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="termination-status">{localizedObj.terminationStatusLabel}</Label>
+        {/* Removed icon wrapper from SelectTrigger to prevent double icons */}
+        <Select value={terminationStatus} onValueChange={setTerminationStatus}>
+          <SelectTrigger id="termination-status">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="COMPLETED">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <span>{localizedObj.terminationStatusCompleted}</span>
+              </div>
+            </SelectItem>
+            <SelectItem value="FAILED">
+              <div className="flex items-center gap-2">
+                <XCircle className="h-4 w-4 text-red-600" />
+                <span>{localizedObj.terminationStatusFailed}</span>
+              </div>
+            </SelectItem>
+            <SelectItem value="TERMINATED">
+              <div className="flex items-center gap-2">
+                <StopCircle className="h-4 w-4 text-orange-600" />
+                <span>{localizedObj.terminationStatusTerminated}</span>
+              </div>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-gray-500">{localizedObj.terminationStatusHelp}</p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="termination-reason">{localizedObj.terminationReasonLabel}</Label>
+        <Textarea
+          id="termination-reason"
+          value={terminationReason}
+          onChange={(e) => setTerminationReason(e.target.value)}
+          placeholder={localizedObj.terminationReasonPlaceholder}
+          rows={3}
+        />
+        <p className="text-xs text-gray-500">{localizedObj.terminationReasonHelp}</p>
+      </div>
+
+      <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+        <p className="text-xs text-red-800">
+          <strong>{localizedObj.warningLabel}</strong> {localizedObj.terminationWarning}
+        </p>
+      </div>
     </>
   )
 }

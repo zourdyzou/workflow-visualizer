@@ -1,5 +1,5 @@
 "use client"
-import { Globe, FunctionSquare, Sparkles, GitBranch, GitFork, GitMerge, Code2, Zap } from "lucide-react"
+import { Globe, FunctionSquare, Sparkles, GitBranch, GitFork, GitMerge, Code2, Zap, XCircle } from "lucide-react"
 import type React from "react"
 import { useState } from "react"
 
@@ -14,6 +14,7 @@ interface TaskSelectionPopoverProps {
 
 export function TaskSelectionPopover({ children, nodeId }: TaskSelectionPopoverProps) {
   const [open, setOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
 
   const taskTypes = [
     {
@@ -51,7 +52,14 @@ export function TaskSelectionPopover({ children, nodeId }: TaskSelectionPopoverP
       label: "Dynamic Fork",
       icon: Zap,
     },
+    {
+      id: "TERMINATE",
+      label: "Terminate",
+      icon: XCircle,
+    },
   ]
+
+  const filteredTaskTypes = taskTypes.filter((task) => task.label.toLowerCase().includes(searchTerm.toLowerCase()))
 
   const handleSelectTask = (taskType: string) => {
     console.log("[v0] Task selected:", taskType, "for node:", nodeId)
@@ -65,13 +73,17 @@ export function TaskSelectionPopover({ children, nodeId }: TaskSelectionPopoverP
     setOpen(false)
   }
 
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value)
+  }
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent className="w-[400px] p-4" align="center" side="bottom">
         <div className="space-y-4">
           {/* Search bar */}
-          <Input placeholder="Search tasks..." className="w-full" />
+          <Input placeholder="Search tasks..." className="w-full" value={searchTerm} onChange={handleSearchChange} />
 
           {/* Quick Add section */}
           <div>
@@ -84,7 +96,7 @@ export function TaskSelectionPopover({ children, nodeId }: TaskSelectionPopoverP
 
             {/* Task type grid */}
             <div className="grid grid-cols-3 gap-3">
-              {taskTypes.map((task) => {
+              {filteredTaskTypes.map((task) => {
                 const Icon = task.icon
                 return (
                   <Button

@@ -5,7 +5,6 @@ import { WorkflowVisualizer } from "./workflow-visualizer"
 import { WorkflowFormPanel, type WorkflowFormPanelLocalization } from "./workflow-form-panel"
 import { WorkflowProvider, useWorkflow } from "./context/workflow-context"
 import type { ConductorWorkflow } from "./types/conductor-types"
-import { defaultWorkflowFormLocalization } from "@/lib/workflow-form-localization"
 
 /**
  * Props for the WorkflowViewerTool component.
@@ -127,7 +126,7 @@ export function WorkflowViewerTool({
   initialWorkflow,
   onSave,
   onCancel,
-  formLocalizedObj = defaultWorkflowFormLocalization,
+  formLocalizedObj,
 }: WorkflowViewerToolProps) {
   return (
     <WorkflowProvider initialWorkflow={initialWorkflow}>
