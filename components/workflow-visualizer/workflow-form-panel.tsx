@@ -16,6 +16,7 @@ import { javascript } from "@codemirror/lang-javascript"
 
 import type { WorkflowFormPanelLocalization } from "@/lib/workflow-form-localization"
 import { defaultWorkflowFormLocalization } from "@/lib/workflow-form-localization"
+import { isDynamicForkType } from "@/lib/workflow-utils"
 
 interface WorkflowFormPanelProps {
   workflow: ConductorWorkflow
@@ -212,7 +213,7 @@ function TaskForm({
   localizedObj,
 }: { task: any; taskReferenceName: string; localizedObj: WorkflowFormPanelLocalization }) {
   const fullTask = task.task || task
-  const taskType = task.taskType || "WORKER"
+  const taskType = fullTask.type || task.taskType || "WORKER"
 
   return (
     <div className="space-y-4">
@@ -240,7 +241,7 @@ function TaskForm({
       {taskType === "JSON_JQ_TRANSFORM" && (
         <JsonJqTransformForm task={fullTask} taskReferenceName={taskReferenceName} localizedObj={localizedObj} />
       )}
-      {taskType === "DYNAMIC_FORK" && (
+      {isDynamicForkType(taskType) && (
         <DynamicForkForm task={fullTask} taskReferenceName={taskReferenceName} localizedObj={localizedObj} />
       )}
       {taskType === "TERMINATE" && (

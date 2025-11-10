@@ -20,6 +20,7 @@ import { DynamicForkNode } from "./nodes/dynamic-fork-node"
 import { parseWorkflowToReactFlow } from "./utils/workflow-parser"
 import { useWorkflow } from "./context/workflow-context"
 import type { ConductorWorkflow } from "./types/conductor-types"
+import { isDynamicForkType, isForkType } from "@/lib/workflow-utils"
 
 const nodeTypes = {
   simpleTask: SimpleTaskNode,
@@ -267,12 +268,12 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
         return
       }
 
-      if (afterNode.data?.taskType === "FORK_JOIN" || afterNode.data?.taskType === "FORK_JOIN_DYNAMIC") {
+      if (isForkType(afterNode.data?.taskType)) {
         console.log("[v0] Fork node: branches have direct plus buttons, skipping branch selection")
         return
       }
 
-      if (afterNode.data?.taskType === "DYNAMIC_FORK") {
+      if (isDynamicForkType(afterNode.data?.taskType)) {
         console.log("[v0] Dynamic fork node: branches have direct plus buttons, skipping branch selection")
         return
       }
@@ -499,15 +500,18 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
         target: newNodeId,
         type: "smoothstep",
         animated: false,
+        style: {
+          strokeWidth: 2,
+          stroke: "#64748b",
+        },
+        pathOptions: {
+          borderRadius: 20,
+        },
         markerEnd: {
           type: MarkerType.ArrowClosed,
           width: 20,
           height: 20,
           color: "#64748b",
-        },
-        style: {
-          strokeWidth: 2,
-          stroke: "#64748b",
         },
       }
 

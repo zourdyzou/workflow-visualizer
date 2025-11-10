@@ -307,6 +307,10 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
 }
 
 function getNodeType(taskType: string): string {
+  if (taskType.includes("DYNAMIC") && (taskType.includes("FORK") || taskType === "FORK_JOIN_DYNAMIC")) {
+    return "dynamicFork"
+  }
+
   switch (taskType) {
     case "WORKER":
       return "workerTask"
@@ -321,12 +325,9 @@ function getNodeType(taskType: string): string {
     case "SWITCH":
       return "decision"
     case "FORK_JOIN":
-    case "FORK_JOIN_DYNAMIC":
       return "fork"
     case "JSON_JQ_TRANSFORM":
       return "jsonJq"
-    case "DYNAMIC_FORK":
-      return "dynamicFork"
     case "JOIN":
       return "join"
     case "TERMINATE":

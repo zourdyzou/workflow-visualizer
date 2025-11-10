@@ -4,106 +4,136 @@ import { defaultWorkflowFormLocalization } from "@/lib/workflow-form-localizatio
 import type { ConductorWorkflow } from "@/components/workflow-visualizer/types/conductor-types"
 
 const sampleWorkflow: ConductorWorkflow = {
-  name: "order_processing_workflow",
-  description: "Complete order processing workflow with payment, inventory, and shipping",
-  version: 2,
-  tasks: [
+  "name": "order_processing_workflow",
+  "description": "Complete order processing workflow with payment, inventory, and shipping",
+  "version": 2,
+  "tasks": [
     {
-      name: "validate_order",
-      taskReferenceName: "validate_ref",
-      type: "WORKER",
-      inputParameters: {
-        orderId: "${workflow.input.orderId}",
-        amount: "${workflow.input.amount}",
+      "name": "validate_order",
+      "taskReferenceName": "validate_ref",
+      "type": "WORKER",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "amount": "${workflow.input.amount}"
       },
-      optional: false,
-      asyncComplete: false,
-      startDelay: 0,
+      "optional": false,
+      "asyncComplete": false,
+      "startDelay": 0
     },
     {
-      name: "process_payment",
-      taskReferenceName: "payment_ref",
-      type: "HTTP",
-      inputParameters: {
-        http_request: {
-          method: "POST",
-          uri: "/payment-service/process-payment",
-          body: {
-            orderId: "${workflow.input.orderId}",
-            amount: "${workflow.input.amount}",
-            currency: "${workflow.input.currency}",
-          },
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        },
+      "name": "dynamic_fork_0",
+      "taskReferenceName": "dynamic_fork_ref_0",
+      "type": "FORK_JOIN_DYNAMIC",
+      "inputParameters": {
+        "dynamicTasks": [],
+        "dynamicTasksInput": {}
       },
-      timeoutSeconds: 300,
-      retry: {
-        retryFor: ["TIMEOUT", "SYSTEM_ERROR"],
-        retryLimit: 3,
-        retryDelaySeconds: 30,
-      },
+      "dynamicForkTasksParam": "dynamicTasks",
+      "dynamicForkTasksInputParamName": "dynamicTasksInput"
     },
     {
-      name: "check_inventory",
-      taskReferenceName: "inventory_ref",
-      type: "WORKER",
-      inputParameters: {
-        productIds: "${workflow.input.productIds}",
-        quantities: "${workflow.input.quantities}",
+      "name": "dynamic_fork_0_join",
+      "taskReferenceName": "dynamic_fork_ref_0_join",
+      "type": "JOIN",
+      "inputParameters": {},
+      "joinOn": [
+        "dynamic_fork_ref_0"
+      ]
+    },
+    {
+      "name": "process_payment",
+      "taskReferenceName": "payment_ref",
+      "type": "HTTP",
+      "inputParameters": {
+        "http_request": {
+          "method": "POST",
+          "uri": "/payment-service/process-payment",
+          "body": {
+            "orderId": "${workflow.input.orderId}",
+            "amount": "${workflow.input.amount}",
+            "currency": "${workflow.input.currency}"
+          },
+          "headers": {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+          }
+        }
       },
-      forkTasks: [
+      "timeoutSeconds": 300,
+      "retry": {
+        "retryFor": [
+          "TIMEOUT",
+          "SYSTEM_ERROR"
+        ],
+        "retryLimit": 3,
+        "retryDelaySeconds": 30
+      }
+    },
+    {
+      "name": "check_inventory",
+      "taskReferenceName": "inventory_ref",
+      "type": "WORKER",
+      "inputParameters": {
+        "productIds": "${workflow.input.productIds}",
+        "quantities": "${workflow.input.quantities}"
+      },
+      "forkTasks": [
         {
-          taskReferenceName: "inventory_check_1",
-          type: "WORKER",
-          inputParameters: {
-            productId: "${workflow.input.productIds[0]}",
-            quantity: "${workflow.input.quantities[0]}",
-          },
+          "taskReferenceName": "inventory_check_1",
+          "type": "WORKER",
+          "inputParameters": {
+            "productId": "${workflow.input.productIds[0]}",
+            "quantity": "${workflow.input.quantities[0]}"
+          }
         },
         {
-          taskReferenceName: "inventory_check_2",
-          type: "WORKER",
-          inputParameters: {
-            productId: "${workflow.input.productIds[1]}",
-            quantity: "${workflow.input.quantities[1]}",
-          },
-        },
-      ],
+          "taskReferenceName": "inventory_check_2",
+          "type": "WORKER",
+          "inputParameters": {
+            "productId": "${workflow.input.productIds[1]}",
+            "quantity": "${workflow.input.quantities[1]}"
+          }
+        }
+      ]
     },
     {
-      name: "schedule_shipping",
-      taskReferenceName: "shipping_ref",
-      type: "WORKER",
-      inputParameters: {
-        orderId: "${workflow.input.orderId}",
-        address: "${workflow.input.shippingAddress}",
+      "name": "schedule_shipping",
+      "taskReferenceName": "shipping_ref",
+      "type": "WORKER",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "address": "${workflow.input.shippingAddress}"
       },
-      joinOn: "inventory_ref",
-      optional: true,
-    },
+      "joinOn": "inventory_ref",
+      "optional": true
+    }
   ],
-  inputParameters: ["orderId", "amount", "currency", "productIds", "quantities", "shippingAddress"],
-  outputParameters: {
-    orderStatus: "${workflow.variables.orderStatus}",
-    paymentId: "${payment_ref.output.paymentId}",
-    trackingNumber: "${shipping_ref.output.trackingNumber}",
+  "inputParameters": [
+    "orderId",
+    "amount",
+    "currency",
+    "productIds",
+    "quantities",
+    "shippingAddress"
+  ],
+  "outputParameters": {
+    "orderStatus": "${workflow.variables.orderStatus}",
+    "paymentId": "${payment_ref.output.paymentId}",
+    "trackingNumber": "${shipping_ref.output.trackingNumber}"
   },
-  schemaVersion: 2,
-  restartable: true,
-  workflowStatusListenerEnabled: true,
-  ownerEmail: "team@example.com",
-  timeoutSeconds: 3600,
-  timeoutPolicy: "ALERT_ONLY",
-  failureWorkflow: "error_handling_workflow",
-  inputTemplate: {
-    currency: "USD",
+  "schemaVersion": 2,
+  "restartable": true,
+  "workflowStatusListenerEnabled": true,
+  "ownerEmail": "team@example.com",
+  "timeoutSeconds": 3600,
+  "timeoutPolicy": "ALERT_ONLY",
+  "failureWorkflow": "error_handling_workflow",
+  "inputTemplate": {
+    "currency": "USD"
   },
-  variables: {
-    orderStatus: "PENDING",
-  },
+  "variables": {
+    "orderStatus": "PENDING"
+  }
 }
 
 export default function WorkflowDemoPage() {

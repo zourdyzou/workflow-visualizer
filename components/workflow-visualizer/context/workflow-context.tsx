@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react"
 import type { ConductorWorkflow, ConductorTask } from "../types/conductor-types"
 import { WorkflowConfirmationDialog } from "./workflow-confirmation-dialog"
+import { isForkType } from "@/lib/workflow-utils"
 
 /**
  * Configuration for the confirmation dialog.
@@ -240,7 +241,7 @@ export function WorkflowProvider({
 
   const addTask = useCallback((task: ConductorTask, afterTaskRef?: string) => {
     setWorkflow((prev) => {
-      if (task.type === "FORK_JOIN" || task.type === "DYNAMIC_FORK") {
+      if (isForkType(task.type)) {
         const joinTask: ConductorTask = {
           name: `${task.name}_join`,
           taskReferenceName: `${task.taskReferenceName}_join`,
@@ -283,7 +284,7 @@ export function WorkflowProvider({
       const taskToDelete = prev.tasks.find((t) => t.taskReferenceName === taskReferenceName)
 
       // If the task is a FORK_JOIN or DYNAMIC_FORK, also remove its corresponding JOIN task
-      if (taskToDelete && (taskToDelete.type === "FORK_JOIN" || taskToDelete.type === "DYNAMIC_FORK")) {
+      if (taskToDelete && isForkType(taskToDelete.type)) {
         const joinTaskRef = `${taskReferenceName}_join`
         console.log("[v0] Removing FORK/DYNAMIC_FORK and its JOIN task:", { taskReferenceName, joinTaskRef })
 
@@ -349,10 +350,7 @@ export function WorkflowProvider({
   const addTaskToForkBranch = useCallback((task: ConductorTask, forkTaskRef: string, branchIndex: number) => {
     setWorkflow((prev) => {
       const newTasks = prev.tasks.map((t) => {
-        if (
-          t.taskReferenceName === forkTaskRef &&
-          (t.type === "FORK_JOIN" || t.type === "FORK_JOIN_DYNAMIC" || t.type === "DYNAMIC_FORK")
-        ) {
+        if (t.taskReferenceName === forkTaskRef && isForkType(t.type)) {
           const updatedTask = { ...t }
           const forkTasks = [...(updatedTask.forkTasks || [])]
 
@@ -375,10 +373,7 @@ export function WorkflowProvider({
   const addForkBranch = useCallback((forkTaskRef: string) => {
     setWorkflow((prev) => {
       const newTasks = prev.tasks.map((t) => {
-        if (
-          t.taskReferenceName === forkTaskRef &&
-          (t.type === "FORK_JOIN" || t.type === "FORK_JOIN_DYNAMIC" || t.type === "DYNAMIC_FORK")
-        ) {
+        if (t.taskReferenceName === forkTaskRef && isForkType(t.type)) {
           const updatedTask = { ...t }
           const forkTasks = [...(updatedTask.forkTasks || [])]
           forkTasks.push([]) // Add empty branch
@@ -394,10 +389,7 @@ export function WorkflowProvider({
   const removeForkBranch = useCallback((forkTaskRef: string, branchIndex: number) => {
     setWorkflow((prev) => {
       const newTasks = prev.tasks.map((t) => {
-        if (
-          t.taskReferenceName === forkTaskRef &&
-          (t.type === "FORK_JOIN" || t.type === "FORK_JOIN_DYNAMIC" || t.type === "DYNAMIC_FORK")
-        ) {
+        if (t.taskReferenceName === forkTaskRef && isForkType(t.type)) {
           const updatedTask = { ...t }
           const forkTasks = [...(updatedTask.forkTasks || [])]
           forkTasks[branchIndex] = [] // Clear all tasks from this branch
