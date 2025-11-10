@@ -82,8 +82,6 @@ export function TaskSelectionPopover({ children, nodeId }: TaskSelectionPopoverP
       <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent className="w-[400px] p-4" align="center" side="bottom">
         <div className="space-y-4">
-          {/* Search bar */}
-          <Input placeholder="Search tasks..." className="w-full" value={searchTerm} onChange={handleSearchChange} />
 
           {/* Quick Add section */}
           <div>
