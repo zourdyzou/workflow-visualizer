@@ -2,7 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* Scoped CSS variables to .workflow-visualizer-root instead of :root to prevent conflicts */
+.workflow-visualizer-root {
   --background: 0 0% 100%;
   --foreground: 0 0% 3.9%;
   --card: 0 0% 100%;
@@ -38,7 +39,8 @@
   --sidebar-ring: 0 0% 63.9%;
 }
 
-.dark {
+/* Dark mode scoped to .workflow-visualizer-root.dark */
+.workflow-visualizer-root.dark {
   --background: 0 0% 3.9%;
   --foreground: 0 0% 98%;
   --card: 0 0% 3.9%;
@@ -73,11 +75,14 @@
   --sidebar-ring: 0 0% 83.1%;
 }
 
+/* Scoped base styles only within .workflow-visualizer-root - no global body or * styles */
 @layer base {
-  * {
+  .workflow-visualizer-root * {
     border-color: hsl(var(--border));
   }
-  body {
-    @apply bg-background text-foreground;
+
+  .workflow-visualizer-root {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
 }

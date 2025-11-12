@@ -59,7 +59,7 @@ function WorkflowViewerToolContent({
   }
 
   return (
-    <div className="flex h-screen">
+    <div className="workflow-visualizer-root flex h-screen">
       <div className="flex-1 flex flex-col">
         <WorkflowVisualizer
           workflow={workflow}
@@ -102,7 +102,7 @@ function WorkflowViewerToolContent({
  *
  * @component
  * @example
- * ```tsx
+ * \`\`\`tsx
  * import { WorkflowViewerTool } from '@/components/workflow-visualizer/workflow-viewer-tool'
  * import { defaultWorkflowFormLocalization } from '@/lib/workflow-form-localization'
  *
@@ -120,14 +120,9 @@ function WorkflowViewerToolContent({
  *     />
  *   )
  * }
- * ```
+ * \`\`\`
  */
-export function WorkflowViewerTool({
-  initialWorkflow,
-  onSave,
-  onCancel,
-  formLocalizedObj,
-}: WorkflowViewerToolProps) {
+export function WorkflowViewerTool({ initialWorkflow, onSave, onCancel, formLocalizedObj }: WorkflowViewerToolProps) {
   return (
     <WorkflowProvider initialWorkflow={initialWorkflow}>
       <WorkflowViewerToolContent onSave={onSave} onCancel={onCancel} formLocalizedObj={formLocalizedObj} />
