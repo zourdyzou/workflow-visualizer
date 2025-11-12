@@ -18,7 +18,8 @@
  * isDynamicForkType("WORKER") // false
  * ```
  */
-export function isDynamicForkType(taskType: string): boolean {
+export function isDynamicForkType(taskType: string | undefined): boolean {
+  if (!taskType) return false
   return taskType.includes("DYNAMIC") && (taskType.includes("FORK") || taskType === "FORK_JOIN_DYNAMIC")
 }
 
@@ -36,6 +37,7 @@ export function isDynamicForkType(taskType: string): boolean {
  * isForkType("WORKER") // false
  * ```
  */
-export function isForkType(taskType: string): boolean {
+export function isForkType(taskType: string | undefined): boolean {
+  if (!taskType) return false
   return taskType === "FORK_JOIN" || taskType === "FORK_JOIN_DYNAMIC" || isDynamicForkType(taskType)
 }
