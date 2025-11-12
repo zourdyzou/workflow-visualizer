@@ -318,6 +318,8 @@ function getNodeType(taskType: string): string {
       return "httpTask"
     case "EVENT":
       return "eventTask"
+    case "WAIT":
+      return "systemTask"
     case "START_WORKFLOW":
     case "SUB_WORKFLOW":
       return "startWorkflowTask"

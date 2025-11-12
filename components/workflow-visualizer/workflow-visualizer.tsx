@@ -141,7 +141,8 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
 
       console.log("[v0] Current nodes count:", currentNodes.length)
 
-      if (afterNodeId.includes("_fork_")) {
+      // Check if this is a fork branch node (but NOT a JOIN node)
+      if (afterNodeId.includes("_fork_") && !afterNodeId.includes("_join")) {
         const parts = afterNodeId.split("_fork_")
         const forkTaskRef = parts[0]
         const branchParts = parts[1].split("_")
@@ -154,6 +155,8 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
         else if (taskType === "DECISION") taskTypeName = "decision"
         else if (taskType === "JSON_JQ_TRANSFORM") taskTypeName = "json_jq"
         else if (taskType === "DYNAMIC_FORK") taskTypeName = "dynamic_fork"
+        else if (taskType === "EVENT") taskTypeName = "event"
+        else if (taskType === "WAIT") taskTypeName = "wait"
 
         const count = countRef.current
         const newTaskName = `${taskTypeName}_${count}`
@@ -192,6 +195,14 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
             dynamicTasks: [],
             dynamicTasksInput: {},
           }
+        } else if (taskType === "EVENT") {
+          taskData.sink = "conductor"
+          taskData.asyncComplete = false
+        } else if (taskType === "WAIT") {
+          taskData.inputParameters = {
+            duration: "",
+            until: "",
+          }
         }
 
         console.log("[v0] Adding task to fork branch:", { forkTaskRef, branchIndex })
@@ -199,7 +210,7 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
         return
       }
 
-      if (afterNodeId.includes("_case_")) {
+      if (afterNodeId.includes("_case_") && !afterNodeId.includes("_join")) {
         const parts = afterNodeId.split("_case_")
         const decisionTaskRef = parts[0]
         const caseParts = parts[1].split("_")
@@ -212,6 +223,8 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
         else if (taskType === "DECISION") taskTypeName = "decision"
         else if (taskType === "JSON_JQ_TRANSFORM") taskTypeName = "json_jq"
         else if (taskType === "DYNAMIC_FORK") taskTypeName = "dynamic_fork"
+        else if (taskType === "EVENT") taskTypeName = "event"
+        else if (taskType === "WAIT") taskTypeName = "wait"
 
         const count = countRef.current
         const newTaskName = `${taskTypeName}_${count}`
@@ -250,6 +263,14 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
             dynamicTasks: [],
             dynamicTasksInput: {},
           }
+        } else if (taskType === "EVENT") {
+          taskData.sink = "conductor"
+          taskData.asyncComplete = false
+        } else if (taskType === "WAIT") {
+          taskData.inputParameters = {
+            duration: "",
+            until: "",
+          }
         }
 
         console.log("[v0] Adding task to decision branch:", { decisionTaskRef, caseName })
@@ -285,6 +306,8 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
       else if (taskType === "DECISION") taskTypeName = "decision"
       else if (taskType === "JSON_JQ_TRANSFORM") taskTypeName = "json_jq"
       else if (taskType === "DYNAMIC_FORK") taskTypeName = "dynamic_fork"
+      else if (taskType === "EVENT") taskTypeName = "event"
+      else if (taskType === "WAIT") taskTypeName = "wait"
 
       const count = countRef.current
       const newTaskName = `${taskTypeName}_${count}`
@@ -298,6 +321,7 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
       let reactFlowNodeType = "workerTask"
       if (taskType === "HTTP") reactFlowNodeType = "httpTask"
       else if (taskType === "EVENT") reactFlowNodeType = "eventTask"
+      else if (taskType === "WAIT") reactFlowNodeType = "systemTask"
       else if (taskType === "DECISION") reactFlowNodeType = "decision"
       else if (taskType === "FORK_JOIN") reactFlowNodeType = "fork"
       else if (taskType === "JOIN") reactFlowNodeType = "join"
@@ -327,6 +351,14 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
         }
         nodeData.method = "GET"
         nodeData.url = ""
+      } else if (taskType === "EVENT") {
+        taskData.sink = "conductor"
+        taskData.asyncComplete = false
+      } else if (taskType === "WAIT") {
+        taskData.inputParameters = {
+          duration: "",
+          until: "",
+        }
       } else if (taskType === "DECISION") {
         taskData.decisionCases = {
           true: [],

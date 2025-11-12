@@ -5,13 +5,13 @@
  * Implement this interface with your desired language/translations to customize the UI text.
  *
  * @example
- * ```typescript
+ * \`\`\`typescript
  * const spanishLocalization: WorkflowFormPanelLocalization = {
  *   taskName: "Nombre de Tarea",
  *   taskReferenceName: "Nombre de Referencia",
  *   // ... other translations
  * }
- * ```
+ * \`\`\`
  */
 export interface WorkflowFormPanelLocalization {
   // Tab labels
@@ -114,6 +114,15 @@ export interface WorkflowFormPanelLocalization {
 
   // Misc
   noTasksAvailable: string
+
+  // Wait task
+  waitDurationLabel: string
+  waitDurationPlaceholder: string
+  waitDurationHelp: string
+  waitUntilLabel: string
+  waitUntilPlaceholder: string
+  waitUntilHelp: string
+  waitNote: string
 }
 
 /**
@@ -123,14 +132,14 @@ export interface WorkflowFormPanelLocalization {
  * Use this as a reference when creating custom localizations.
  *
  * @example
- * ```typescript
+ * \`\`\`typescript
  * import { defaultWorkflowFormLocalization } from '@/lib/workflow-form-localization'
  *
  * <WorkflowFormPanel
  *   localizedObj={defaultWorkflowFormLocalization}
  *   // ... other props
  * />
- * ```
+ * \`\`\`
  */
 export const defaultWorkflowFormLocalization: WorkflowFormPanelLocalization = {
   // Tab labels
@@ -138,7 +147,7 @@ export const defaultWorkflowFormLocalization: WorkflowFormPanelLocalization = {
   taskTab: "Task",
 
   // Common actions
-  save: "Save Changes",
+  save: "Save",
   cancel: "Cancel",
   addParameter: "Add Parameter",
   empty: "No parameters",
@@ -236,4 +245,15 @@ export const defaultWorkflowFormLocalization: WorkflowFormPanelLocalization = {
 
   // Misc
   noTasksAvailable: "No tasks available",
+
+  // Wait task
+  waitDurationLabel: "Duration",
+  waitDurationPlaceholder: "2 days 3 hours 5 minutes",
+  waitDurationHelp:
+    "Specify duration using days (d), hours (hrs/h), minutes (mins/m), seconds (secs/s). Example: '2 days 3 hours 5 minutes'",
+  waitUntilLabel: "Wait Until",
+  waitUntilPlaceholder: "2024-12-31 23:59 GMT+00:00",
+  waitUntilHelp: "Specify a datetime to wait until. Formats: 'yyyy-MM-dd HH:mm z', 'yyyy-MM-dd HH:mm', or 'yyyy-MM-dd'",
+  waitNote:
+    "WAIT tasks pause workflow execution either for a specified duration or until a specific datetime. Only one field (Duration or Wait Until) should be filled.",
 }

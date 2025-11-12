@@ -1,10 +1,21 @@
 "use client"
-import { Globe, FunctionSquare, Sparkles, GitBranch, GitFork, GitMerge, Code2, Zap, XCircle } from "lucide-react"
+import {
+  Globe,
+  FunctionSquare,
+  Sparkles,
+  GitBranch,
+  GitFork,
+  GitMerge,
+  Code2,
+  Zap,
+  XCircle,
+  Megaphone,
+  Clock,
+} from "lucide-react"
 import type React from "react"
 import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 interface TaskSelectionPopoverProps {
@@ -26,6 +37,16 @@ export function TaskSelectionPopover({ children, nodeId }: TaskSelectionPopoverP
       id: "HTTP",
       label: "HTTP Task",
       icon: Globe,
+    },
+    {
+      id: "EVENT",
+      label: "Event Task",
+      icon: Megaphone,
+    },
+    {
+      id: "WAIT",
+      label: "Wait Task",
+      icon: Clock,
     },
     {
       id: "DECISION",
@@ -82,7 +103,6 @@ export function TaskSelectionPopover({ children, nodeId }: TaskSelectionPopoverP
       <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent className="w-[400px] p-4" align="center" side="bottom">
         <div className="space-y-4">
-
           {/* Quick Add section */}
           <div>
             <div className="mb-3 flex items-center gap-2">

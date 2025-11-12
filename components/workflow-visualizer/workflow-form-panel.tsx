@@ -226,6 +226,9 @@ function TaskForm({
       {taskType === "EVENT" && (
         <EventTaskForm task={fullTask} taskReferenceName={taskReferenceName} localizedObj={localizedObj} />
       )}
+      {taskType === "WAIT" && (
+        <WaitTaskForm task={fullTask} taskReferenceName={taskReferenceName} localizedObj={localizedObj} />
+      )}
       {taskType === "START_WORKFLOW" && (
         <StartWorkflowTaskForm task={fullTask} taskReferenceName={taskReferenceName} localizedObj={localizedObj} />
       )}
@@ -1568,6 +1571,82 @@ function TerminateTaskForm({
       <div className="rounded-lg border border-red-200 bg-red-50 p-3">
         <p className="text-xs text-red-800">
           <strong>{localizedObj.warningLabel}</strong> {localizedObj.terminationWarning}
+        </p>
+      </div>
+    </>
+  )
+}
+
+/**
+ * Form component for WAIT task configuration
+ *
+ * WAIT tasks pause workflow execution either for a specified duration or until a specific datetime.
+ * This is useful for implementing delays, scheduled actions, or time-based workflow logic.
+ *
+ * @param task - The WAIT task data
+ * @param taskReferenceName - Unique reference name for the task
+ * @param localizedObj - Localization object for form labels
+ */
+function WaitTaskForm({
+  task,
+  taskReferenceName,
+  localizedObj,
+}: { task: any; taskReferenceName: string; localizedObj: WorkflowFormPanelLocalization }) {
+  const { updateTask } = useWorkflow()
+
+  const [taskName, setTaskName] = useState(task.name || "wait")
+  const [taskRef, setTaskRef] = useState(task.taskReferenceName || taskReferenceName)
+  const [duration, setDuration] = useState(task.inputParameters?.duration || "")
+  const [until, setUntil] = useState(task.inputParameters?.until || "")
+
+  useEffect(() => {
+    updateTask(taskReferenceName, {
+      name: taskName,
+      taskReferenceName: taskRef,
+      inputParameters: {
+        ...(duration && { duration }),
+        ...(until && { until }),
+      },
+    })
+  }, [taskName, taskRef, duration, until, taskReferenceName, updateTask])
+
+  return (
+    <>
+      <div className="space-y-2">
+        <Label htmlFor="wait-task-name">{localizedObj.taskName}</Label>
+        <Input id="wait-task-name" value={taskName} onChange={(e) => setTaskName(e.target.value)} />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="wait-task-ref">{localizedObj.taskReferenceName}</Label>
+        <Input id="wait-task-ref" value={taskRef} onChange={(e) => setTaskRef(e.target.value)} />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="wait-duration">{localizedObj.waitDurationLabel}</Label>
+        <Input
+          id="wait-duration"
+          value={duration}
+          onChange={(e) => setDuration(e.target.value)}
+          placeholder={localizedObj.waitDurationPlaceholder}
+        />
+        <p className="text-xs text-gray-500">{localizedObj.waitDurationHelp}</p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="wait-until">{localizedObj.waitUntilLabel}</Label>
+        <Input
+          id="wait-until"
+          value={until}
+          onChange={(e) => setUntil(e.target.value)}
+          placeholder={localizedObj.waitUntilPlaceholder}
+        />
+        <p className="text-xs text-gray-500">{localizedObj.waitUntilHelp}</p>
+      </div>
+
+      <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+        <p className="text-xs text-blue-800">
+          <strong>Note:</strong> {localizedObj.waitNote}
         </p>
       </div>
     </>
