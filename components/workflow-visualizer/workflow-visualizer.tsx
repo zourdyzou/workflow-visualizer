@@ -307,7 +307,7 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
       else if (taskType === "JSON_JQ_TRANSFORM") taskTypeName = "json_jq"
       else if (taskType === "DYNAMIC_FORK") taskTypeName = "dynamic_fork"
       else if (taskType === "EVENT") taskTypeName = "event"
-      else if (taskType === "WAIT") taskTypeName = "wait"
+      else if (taskType === "WAIT") taskTypeName = "systemTask"
 
       const count = countRef.current
       const newTaskName = `${taskTypeName}_${count}`
@@ -556,7 +556,7 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
         nodePositionsRef.current[node.id] = node.position
       })
     },
-    [setNodes, setEdges, addTask],
+    [setNodes, setEdges, addTask, addTaskToBranch, addTaskToForkBranch, VERTICAL_SPACING],
   )
 
   const removeNode = useCallback(
@@ -628,6 +628,17 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
     [],
   )
 
+  useEffect(() => {
+    ;(window as any).__addNodeAfter = addNodeAfter
+    ;(window as any).__removeNode = removeNode
+
+    return () => {
+      // Cleanup on unmount
+      delete (window as any).__addNodeAfter
+      delete (window as any).__removeNode
+    }
+  }, [addNodeAfter, removeNode])
+
   return (
     <div className={`h-full w-full ${className}`}>
       <ReactFlow
@@ -645,10 +656,6 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
         nodesConnectable={false}
         elementsSelectable={true}
         selectNodesOnDrag={false}
-        onInit={(reactFlowInstance) => {
-          ;(window as any).__addNodeAfter = addNodeAfter
-          ;(window as any).__removeNode = removeNode
-        }}
       >
         <Background color="#64748b" gap={16} size={1.5} variant="dots" />
         <Controls />

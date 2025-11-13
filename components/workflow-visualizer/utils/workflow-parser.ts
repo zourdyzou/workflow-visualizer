@@ -64,9 +64,6 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
             strokeWidth: 2,
             stroke: "#64748b",
           },
-          pathOptions: {
-            borderRadius: 20,
-          },
         }
 
         if (branchEnd.sourceHandle) {
@@ -90,9 +87,6 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
         style: {
           strokeWidth: 2,
           stroke: "#64748b",
-        },
-        pathOptions: {
-          borderRadius: 20,
         },
       })
     }
@@ -148,9 +142,6 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
                 strokeWidth: 2,
                 stroke: "#64748b",
               },
-              pathOptions: {
-                borderRadius: 20,
-              },
             })
           } else {
             edges.push({
@@ -162,9 +153,6 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
               style: {
                 strokeWidth: 2,
                 stroke: "#64748b",
-              },
-              pathOptions: {
-                borderRadius: 20,
               },
             })
           }
@@ -228,9 +216,6 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
                 strokeWidth: 2,
                 stroke: "#64748b",
               },
-              pathOptions: {
-                borderRadius: 20,
-              },
             })
           } else {
             edges.push({
@@ -242,9 +227,6 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
               style: {
                 strokeWidth: 2,
                 stroke: "#64748b",
-              },
-              pathOptions: {
-                borderRadius: 20,
               },
             })
           }
@@ -281,9 +263,6 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
           strokeWidth: 2,
           stroke: "#64748b",
         },
-        pathOptions: {
-          borderRadius: 20,
-        },
       })
     })
   } else {
@@ -296,9 +275,6 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
       style: {
         strokeWidth: 2,
         stroke: "#64748b",
-      },
-      pathOptions: {
-        borderRadius: 20,
       },
     })
   }
