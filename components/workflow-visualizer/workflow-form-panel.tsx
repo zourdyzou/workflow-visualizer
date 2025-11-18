@@ -6,13 +6,10 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Pencil, CirclePlus, Trash2, ChevronsRight, CheckCircle, XCircle, StopCircle } from "lucide-react"
+import { Pencil, CirclePlus, Trash2, ChevronsRight, CheckCircle, XCircle, StopCircle } from 'lucide-react'
 import { useState, useEffect } from "react"
 import type { ConductorWorkflow } from "./types/conductor-types"
 import { useWorkflow } from "./context/workflow-context"
-import CodeMirror from "@uiw/react-codemirror"
-import { json } from "@codemirror/lang-json"
-import { javascript } from "@codemirror/lang-javascript"
 
 import type { WorkflowFormPanelLocalization } from "@/lib/workflow-form-localization"
 import { defaultWorkflowFormLocalization } from "@/lib/workflow-form-localization"
@@ -614,21 +611,13 @@ function HttpTaskForm({
         </div>
 
         {bodyType === "json" ? (
-          <div className="border rounded-md overflow-hidden">
-            <CodeMirror
-              value={bodyStr}
-              height="200px"
-              extensions={[json()]}
-              onChange={(value) => setBodyStr(value)}
-              theme="light"
-              basicSetup={{
-                lineNumbers: true,
-                highlightActiveLineGutter: true,
-                highlightActiveLine: true,
-                foldGutter: true,
-              }}
-            />
-          </div>
+          <Textarea
+            value={bodyStr}
+            onChange={(e) => setBodyStr(e.target.value)}
+            placeholder="Enter JSON body here..."
+            rows={10}
+            className="font-mono text-sm bg-gray-50"
+          />
         ) : (
           <div className="border border-dashed border-gray-300 rounded-md p-4">
             {bodyParameters.length === 0 ? (
@@ -1300,21 +1289,14 @@ function JsonJqTransformForm({
 
       <div className="space-y-2">
         <Label htmlFor="query-expression">{localizedObj.jqQueryExpression}</Label>
-        <div className="border rounded-md overflow-hidden">
-          <CodeMirror
-            value={queryExpression}
-            height="120px"
-            extensions={[javascript()]}
-            onChange={(value) => setQueryExpression(value)}
-            theme="light"
-            basicSetup={{
-              lineNumbers: true,
-              highlightActiveLineGutter: false,
-              highlightActiveLine: false,
-              foldGutter: false,
-            }}
-          />
-        </div>
+        <Textarea
+          id="query-expression"
+          value={queryExpression}
+          onChange={(e) => setQueryExpression(e.target.value)}
+          placeholder="Enter JQ query expression..."
+          rows={5}
+          className="font-mono text-sm bg-gray-50"
+        />
         <p className="text-xs text-gray-500">{localizedObj.jqHelpText}</p>
       </div>
     </>

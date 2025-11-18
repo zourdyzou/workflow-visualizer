@@ -13,8 +13,6 @@
   },
   "dependencies": {
     "@babel/runtime": "latest",
-    "@codemirror/lang-javascript": "latest",
-    "@codemirror/lang-json": "latest",
     "@codemirror/state": "latest",
     "@codemirror/theme-one-dark": "latest",
     "@codemirror/view": "latest",

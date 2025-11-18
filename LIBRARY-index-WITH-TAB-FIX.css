@@ -1,0 +1,39 @@
+/* Add to the end of your index.css file */
+
+/* Tab active state styling */
+.workflow-visualizer-root .wcv-border-b-2 {
+  border-bottom-width: 2px;
+  border-bottom-style: solid;
+}
+
+.workflow-visualizer-root .wcv-border-primary {
+  border-color: hsl(var(--primary)) !important;
+}
+
+.workflow-visualizer-root .wcv-text-primary {
+  color: hsl(var(--primary)) !important;
+}
+
+/* Ensure tab buttons have proper states */
+.workflow-visualizer-root button[role="tab"] {
+  position: relative;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease-in-out;
+}
+
+.workflow-visualizer-root button[role="tab"][data-state="active"],
+.workflow-visualizer-root button[role="tab"][aria-selected="true"] {
+  border-bottom-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary)) !important;
+  font-weight: 500;
+}
+
+.workflow-visualizer-root button[role="tab"]:not([data-state="active"]):not([aria-selected="true"]) {
+  color: hsl(var(--muted-foreground));
+}
+
+.workflow-visualizer-root button[role="tab"]:hover:not([data-state="active"]) {
+  color: hsl(var(--foreground));
+  border-bottom-color: hsl(var(--border));
+}

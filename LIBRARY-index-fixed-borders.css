@@ -1,0 +1,194 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Move CSS variables to :root for global accessibility by portals */
+:root {
+  /* Light mode variables */
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  /* Lightened border color from 91.4% to 94% for more subtle borders */
+  --border: 214.3 31.8% 94%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 222.2 84% 4.9%;
+  --radius: 0.5rem;
+  --chart-1: 12 76% 61%;
+  --chart-2: 173 58% 39%;
+  --chart-3: 197 37% 24%;
+  --chart-4: 43 74% 66%;
+  --chart-5: 27 87% 67%;
+}
+
+.dark {
+  /* Dark mode variables */
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 210 40% 98%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  /* Lightened dark mode border from 17.5% to 25% for better visibility without being too harsh */
+  --border: 217.2 32.6% 25%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 212.7 26.8% 83.9%;
+  --chart-1: 220 70% 50%;
+  --chart-2: 160 60% 45%;
+  --chart-3: 30 80% 55%;
+  --chart-4: 280 65% 60%;
+  --chart-5: 340 75% 55%;
+}
+
+/* Scoped wrapper for library isolation with same variables */
+.workflow-visualizer-root {
+  /* Inherit all variables from :root but can be overridden */
+  --background: var(--background, 0 0% 100%);
+  --foreground: var(--foreground, 222.2 84% 4.9%);
+  --card: var(--card, 0 0% 100%);
+  --card-foreground: var(--card-foreground, 222.2 84% 4.9%);
+  --popover: var(--popover, 0 0% 100%);
+  --popover-foreground: var(--popover-foreground, 222.2 84% 4.9%);
+  --primary: var(--primary, 222.2 47.4% 11.2%);
+  --primary-foreground: var(--primary-foreground, 210 40% 98%);
+  --secondary: var(--secondary, 210 40% 96.1%);
+  --secondary-foreground: var(--secondary-foreground, 222.2 47.4% 11.2%);
+  --muted: var(--muted, 210 40% 96.1%);
+  --muted-foreground: var(--muted-foreground, 215.4 16.3% 46.9%);
+  --accent: var(--accent, 210 40% 96.1%);
+  --accent-foreground: var(--accent-foreground, 222.2 47.4% 11.2%);
+  --destructive: var(--destructive, 0 84.2% 60.2%);
+  --destructive-foreground: var(--destructive-foreground, 210 40% 98%);
+  --border: var(--border, 214.3 31.8% 94%);
+  --input: var(--input, 214.3 31.8% 91.4%);
+  --ring: var(--ring, 222.2 84% 4.9%);
+  --radius: var(--radius, 0.5rem);
+}
+
+.workflow-visualizer-root.dark {
+  /* Dark mode overrides for scoped wrapper */
+  --background: var(--background, 222.2 84% 4.9%);
+  --foreground: var(--foreground, 210 40% 98%);
+  --card: var(--card, 222.2 84% 4.9%);
+  --card-foreground: var(--card-foreground, 210 40% 98%);
+  --popover: var(--popover, 222.2 84% 4.9%);
+  --popover-foreground: var(--popover-foreground, 210 40% 98%);
+  --primary: var(--primary, 210 40% 98%);
+  --primary-foreground: var(--primary-foreground, 222.2 47.4% 11.2%);
+  --secondary: var(--secondary, 217.2 32.6% 17.5%);
+  --secondary-foreground: var(--secondary-foreground, 210 40% 98%);
+  --muted: var(--muted, 217.2 32.6% 17.5%);
+  --muted-foreground: var(--muted-foreground, 215 20.2% 65.1%);
+  --accent: var(--accent, 217.2 32.6% 17.5%);
+  --accent-foreground: var(--accent-foreground, 210 40% 98%);
+  --destructive: var(--destructive, 0 62.8% 30.6%);
+  --destructive-foreground: var(--destructive-foreground, 210 40% 98%);
+  --border: var(--border, 217.2 32.6% 25%);
+  --input: var(--input, 217.2 32.6% 17.5%);
+  --ring: var(--ring, 212.7 26.8% 83.9%);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Removed overly aggressive border color application from all elements */
+  /* Old: .workflow-visualizer-root * { border-color: hsl(var(--border)); } */
+
+  .workflow-visualizer-root {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
+
+/* Added custom React Flow edge styling for softer borders */
+@layer components {
+  /* React Flow edges should be subtle */
+  .workflow-visualizer-root .react-flow__edge-path {
+    stroke: hsl(var(--border));
+    stroke-width: 2;
+  }
+
+  /* React Flow node borders */
+  .workflow-visualizer-root .react-flow__node {
+    border-color: hsl(var(--border));
+  }
+}
+
+.sb-show-main.sb-main-padded {
+  padding: 0;
+  margin: 0;
+  display: block;
+  box-sizing: border-box;
+}
+
+.ds-text-color-3 {
+  --tw-text-opacity: 1;
+  color: rgba(227, 227, 227, var(--tw-text-opacity));
+}
+
+.ds-text-color-4 {
+  --tw-text-opacity: 1;
+  color: rgba(85, 85, 85, var(--tw-text-opacity));
+}
+
+/* Added CodeMirror custom styling to integrate with design system */
+@layer components {
+  .workflow-visualizer-root .cm-editor {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    border: 1px solid hsl(var(--border));
+    border-radius: calc(var(--radius) - 2px);
+  }
+
+  .workflow-visualizer-root .cm-editor.cm-focused {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  .workflow-visualizer-root .cm-gutters {
+    background-color: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+    border: none;
+  }
+
+  .workflow-visualizer-root .cm-activeLineGutter {
+    background-color: hsl(var(--accent));
+  }
+
+  .workflow-visualizer-root .cm-activeLine {
+    background-color: hsl(var(--accent) / 0.5);
+  }
+
+  .workflow-visualizer-root .cm-selectionBackground {
+    background-color: hsl(var(--primary) / 0.2) !important;
+  }
+
+  .workflow-visualizer-root .cm-cursor {
+    border-left-color: hsl(var(--foreground));
+  }
+}

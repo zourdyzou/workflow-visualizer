@@ -2,7 +2,7 @@
 import { Handle, Position } from "@xyflow/react"
 import type React from "react"
 import { memo } from "react"
-import { GitFork, X, Plus, Minus } from "lucide-react"
+import { GitFork, X, Plus, Minus } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { useWorkflow } from "../context/workflow-context"
 import { TaskSelectionPopover } from "../task-selection-popover"
@@ -19,7 +19,7 @@ interface ForkNodeProps {
 }
 
 export const ForkNode = memo(function ForkNode({ data, id }: ForkNodeProps) {
-  const { removeTask, showConfirmation, removeForkBranch, addForkBranch } = useWorkflow()
+  const { removeTask, showConfirmation, removeForkBranch, addForkBranch, executionMode } = useWorkflow()
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -74,14 +74,16 @@ export const ForkNode = memo(function ForkNode({ data, id }: ForkNodeProps) {
 
       <div className="relative min-w-[280px] rounded-lg border-2 border-blue-500 bg-blue-50 p-4 shadow-lg transition-shadow hover:shadow-xl">
         {/* Delete button */}
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={handleDelete}
-          className="absolute -right-2 -top-2 h-6 w-6 rounded-full border-2 border-red-400 bg-white p-0 opacity-0 transition-opacity hover:bg-red-50 group-hover:opacity-100"
-        >
-          <X className="h-3 w-3 text-red-500" />
-        </Button>
+        {!executionMode && (
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={handleDelete}
+            className="absolute -right-2 -top-2 h-6 w-6 rounded-full border-2 border-red-400 bg-white p-0 opacity-0 transition-opacity hover:bg-red-50 group-hover:opacity-100"
+          >
+            <X className="h-3 w-3 text-red-500" />
+          </Button>
+        )}
 
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-1 items-start gap-3">
@@ -123,29 +125,31 @@ export const ForkNode = memo(function ForkNode({ data, id }: ForkNodeProps) {
             />
 
             {/* Control buttons below the handle */}
-            <div className="flex gap-1">
-              <TaskSelectionPopover nodeId={branchNodeId}>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-6 w-6 rounded-full border border-gray-300 bg-white p-0 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50"
-                  title={`Add task to Branch ${index + 1}`}
-                >
-                  <Plus className="h-3 w-3 text-gray-600" />
-                </Button>
-              </TaskSelectionPopover>
-              {branchCount > 1 && (
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={(e) => handleRemoveBranch(e, index)}
-                  className="h-6 w-6 rounded-full border border-gray-300 bg-white p-0 shadow-sm transition-all hover:border-red-400 hover:bg-red-50"
-                  title={`Remove all tasks from Branch ${index + 1}`}
-                >
-                  <Minus className="h-3 w-3 text-gray-600" />
-                </Button>
-              )}
-            </div>
+            {!executionMode && (
+              <div className="flex gap-1">
+                <TaskSelectionPopover nodeId={branchNodeId}>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-6 w-6 rounded-full border border-gray-300 bg-white p-0 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50"
+                    title={`Add task to Branch ${index + 1}`}
+                  >
+                    <Plus className="h-3 w-3 text-gray-600" />
+                  </Button>
+                </TaskSelectionPopover>
+                {branchCount > 1 && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={(e) => handleRemoveBranch(e, index)}
+                    className="h-6 w-6 rounded-full border border-gray-300 bg-white p-0 shadow-sm transition-all hover:border-red-400 hover:bg-red-50"
+                    title={`Remove all tasks from Branch ${index + 1}`}
+                  >
+                    <Minus className="h-3 w-3 text-gray-600" />
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         )
       })}

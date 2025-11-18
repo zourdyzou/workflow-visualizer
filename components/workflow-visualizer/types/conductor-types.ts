@@ -45,3 +45,108 @@ export interface ConductorTask {
   forkTaskWorkflowVersion?: number
   queryExpression?: string
 }
+
+export interface WorkflowExecution {
+  // Execution metadata
+  workflowId: string
+  workflowName: string
+  workflowVersion: number
+  status: WorkflowExecutionStatus
+  
+  // Timing
+  createTime: number
+  startTime: number
+  endTime?: number
+  updateTime: number
+  
+  // Ownership
+  ownerApp?: string
+  createdBy?: string
+  updatedBy?: string
+  
+  // Actual runtime data
+  input: Record<string, any>
+  output?: Record<string, any>
+  
+  // Executed tasks with runtime data
+  tasks: ExecutedTask[]
+  
+  // Original workflow definition (embedded)
+  workflowDefinition: ConductorWorkflow
+  
+  // Runtime state
+  variables?: Record<string, any>
+  failedReferenceTaskNames?: string[]
+  failedTaskNames?: string[]
+  lastRetriedTime?: number
+  taskToDomain?: Record<string, string>
+  priority?: number
+  rateLimited?: boolean
+  correlationId?: string
+  reasonForIncompletion?: string
+  event?: string
+  history?: any[]
+}
+
+export interface ExecutedTask {
+  // Task identification
+  taskId: string
+  taskType: string
+  taskDefName: string
+  referenceTaskName: string
+  status: TaskExecutionStatus
+  
+  // Timing
+  scheduledTime: number
+  startTime?: number
+  endTime?: number
+  updateTime: number
+  startDelayInSeconds?: number
+  
+  // Execution metadata
+  seq: number
+  pollCount: number
+  retryCount: number
+  retried: boolean
+  executed: boolean
+  callbackFromWorker?: boolean
+  workerId?: string
+  
+  // Actual runtime data
+  inputData: Record<string, any>
+  outputData?: Record<string, any>
+  reasonForIncompletion?: string
+  
+  // Original task definition
+  workflowTask: ConductorTask
+  
+  // Workflow context
+  workflowInstanceId: string
+  workflowType: string
+  responseTimeoutSeconds?: number
+  callbackAfterSeconds?: number
+  workflowPriority?: number
+  iteration?: number
+  queueWaitTime?: number
+  loopOverTask?: boolean
+  subworkflowId?: string
+  subworkflowChanged?: boolean
+}
+
+export type WorkflowExecutionStatus =
+  | "RUNNING"
+  | "PAUSED"
+  | "COMPLETED"
+  | "FAILED"
+  | "TIMED_OUT"
+  | "TERMINATED"
+
+export type TaskExecutionStatus =
+  | "SCHEDULED"
+  | "IN_PROGRESS"
+  | "COMPLETED"
+  | "FAILED"
+  | "SKIPPED"
+  | "TIMED_OUT"
+  | "CANCELED"
+  | "COMPLETED_WITH_ERRORS"

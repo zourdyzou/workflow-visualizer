@@ -1,17 +1,27 @@
 import type { Node, Edge } from "@xyflow/react"
-import type { ConductorWorkflow, ConductorTask } from "../types/conductor-types"
+import type { ConductorWorkflow, ConductorTask, WorkflowExecution, ExecutedTask, TaskExecutionStatus } from "../types/conductor-types"
 
 const VERTICAL_SPACING = 250
 const HORIZONTAL_SPACING = 400
 const BRANCH_VERTICAL_OFFSET = 150
 
-export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
+export function parseWorkflowToReactFlow(
+  workflow: ConductorWorkflow,
+  executionData?: WorkflowExecution
+): {
   nodes: Node[]
   edges: Edge[]
 } {
   const nodes: Node[] = []
   const edges: Edge[] = []
   let yPosition = 0
+
+  const executionMap = new Map<string, ExecutedTask>()
+  if (executionData) {
+    executionData.tasks.forEach((executedTask) => {
+      executionMap.set(executedTask.referenceTaskName, executedTask)
+    })
+  }
 
   // Add start node
   nodes.push({
@@ -31,6 +41,8 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
     const nodeId = task.taskReferenceName || `task_${index}`
     const nodeType = getNodeType(task.type)
 
+    const executedTask = executionMap.get(task.taskReferenceName)
+
     const xPosition = 400
 
     const node: Node = {
@@ -47,6 +59,8 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
         collapsed: task.type === "DYNAMIC_FORK" || task.type === "FORK_JOIN_DYNAMIC",
         branchCount: task.forkTasks?.length || 2,
         cases: task.decisionCases ? Object.keys(task.decisionCases).concat(["default"]) : undefined,
+        executionStatus: executedTask?.status,
+        executionData: executedTask,
       },
     }
 
@@ -113,6 +127,8 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
         forkBranch.forEach((forkTask, forkIndex) => {
           const forkNodeId = `${nodeId}_fork_${branchIndex}_${forkIndex}`
           const forkNodeType = getNodeType(forkTask.type)
+          
+          const forkExecutedTask = executionMap.get(forkTask.taskReferenceName)
 
           nodes.push({
             id: forkNodeId,
@@ -125,6 +141,8 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
               task: forkTask,
               method: (forkTask.inputParameters as any)?.http_request?.method,
               url: (forkTask.inputParameters as any)?.http_request?.uri,
+              executionStatus: forkExecutedTask?.status,
+              executionData: forkExecutedTask,
             },
           })
 
@@ -186,6 +204,8 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
         caseTasks.forEach((caseTask: ConductorTask, taskIndex: number) => {
           const caseNodeId = `${nodeId}_case_${caseKey}_${taskIndex}`
           const caseNodeType = getNodeType(caseTask.type)
+          
+          const caseExecutedTask = executionMap.get(caseTask.taskReferenceName)
 
           nodes.push({
             id: caseNodeId,
@@ -198,6 +218,8 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
               task: caseTask,
               method: (caseTask.inputParameters as any)?.http_request?.method,
               url: (caseTask.inputParameters as any)?.http_request?.uri,
+              executionStatus: caseExecutedTask?.status,
+              executionData: caseExecutedTask,
             },
           })
 
@@ -280,6 +302,27 @@ export function parseWorkflowToReactFlow(workflow: ConductorWorkflow): {
   }
 
   return { nodes, edges }
+}
+
+export function getExecutionStatusColor(status: TaskExecutionStatus): string {
+  switch (status) {
+    case "COMPLETED":
+      return "#22c55e" // green
+    case "IN_PROGRESS":
+      return "#3b82f6" // blue
+    case "FAILED":
+    case "COMPLETED_WITH_ERRORS":
+      return "#ef4444" // red
+    case "TIMED_OUT":
+      return "#f97316" // orange
+    case "CANCELED":
+    case "SKIPPED":
+      return "#6b7280" // gray
+    case "SCHEDULED":
+      return "#a855f7" // purple
+    default:
+      return "#64748b" // slate
+  }
 }
 
 function getNodeType(taskType: string): string {

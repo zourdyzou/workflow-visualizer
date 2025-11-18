@@ -1,9 +1,10 @@
 "use client"
 import { Handle, Position } from "@xyflow/react"
 import { memo } from "react"
-import { GitMerge, Plus } from "lucide-react"
+import { GitMerge, Plus } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { TaskSelectionPopover } from "../task-selection-popover"
+import { useWorkflow } from "../context/workflow-context"
 
 interface JoinNodeProps {
   data: {
@@ -17,6 +18,7 @@ interface JoinNodeProps {
 }
 
 export const JoinNode = memo(function JoinNode({ data, id }: JoinNodeProps) {
+  const { executionMode } = useWorkflow()
   const branchCount = data.branchCount || 2
 
   return (
@@ -51,17 +53,19 @@ export const JoinNode = memo(function JoinNode({ data, id }: JoinNodeProps) {
           <span className="rounded bg-purple-500 px-2.5 py-1 text-xs font-medium text-white">JOIN</span>
         </div>
 
-        <div className="absolute -bottom-4 left-1/2 z-10 -translate-x-1/2">
-          <TaskSelectionPopover nodeId={id}>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 rounded-full border-2 border-gray-300 bg-white p-0 opacity-0 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50 group-hover:opacity-100"
-            >
-              <Plus className="h-4 w-4 text-gray-600" />
-            </Button>
-          </TaskSelectionPopover>
-        </div>
+        {!executionMode && (
+          <div className="absolute -bottom-4 left-1/2 z-10 -translate-x-1/2">
+            <TaskSelectionPopover nodeId={id}>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 rounded-full border-2 border-gray-300 bg-white p-0 opacity-0 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50 group-hover:opacity-100"
+              >
+                <Plus className="h-4 w-4 text-gray-600" />
+              </Button>
+            </TaskSelectionPopover>
+          </div>
+        )}
       </div>
 
       <Handle type="source" position={Position.Bottom} className="!bg-gray-400" />

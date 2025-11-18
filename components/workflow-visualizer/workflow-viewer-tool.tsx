@@ -1,22 +1,25 @@
 "use client"
 
 import { useState } from "react"
+import { ReactFlowProvider } from "@xyflow/react"
 import { WorkflowVisualizer } from "./workflow-visualizer"
 import { WorkflowFormPanel, type WorkflowFormPanelLocalization } from "./workflow-form-panel"
 import { WorkflowProvider, useWorkflow } from "./context/workflow-context"
-import type { ConductorWorkflow } from "./types/conductor-types"
+import type { ConductorWorkflow, WorkflowExecution } from "./types/conductor-types"
 
 /**
  * Props for the WorkflowViewerTool component.
  *
  * @interface WorkflowViewerToolProps
- * @property {ConductorWorkflow} initialWorkflow - The initial workflow definition to visualize and edit
+ * @property {ConductorWorkflow | WorkflowExecution} initialWorkflow - The initial workflow definition or execution to visualize
+ * @property {boolean} [executionMode] - Whether to visualize as an execution (read-only with status indicators). Default: false
  * @property {(workflow: ConductorWorkflow) => void} [onSave] - Optional callback fired when the user saves changes, receives the exported workflow
  * @property {() => void} [onCancel] - Optional callback fired when the user cancels editing
  * @property {WorkflowFormPanelLocalization} [formLocalizedObj] - Optional localization object for the form panel. Defaults to English if not provided
  */
 interface WorkflowViewerToolProps {
-  initialWorkflow: ConductorWorkflow
+  initialWorkflow: ConductorWorkflow | WorkflowExecution
+  executionMode?: boolean
   onSave?: (workflow: ConductorWorkflow) => void
   onCancel?: () => void
   formLocalizedObj?: WorkflowFormPanelLocalization
@@ -40,7 +43,7 @@ function WorkflowViewerToolContent({
 }) {
   const [selectedNode, setSelectedNode] = useState<any>(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
-  const { workflow, exportWorkflow } = useWorkflow()
+  const { workflow, exportWorkflow, executionMode, workflowExecution } = useWorkflow()
 
   const handleSave = () => {
     if (onSave) {
@@ -61,16 +64,19 @@ function WorkflowViewerToolContent({
   return (
     <div className="workflow-visualizer-root flex h-screen">
       <div className="flex-1 flex flex-col">
-        <WorkflowVisualizer
-          workflow={workflow}
-          onNodeClick={(node) => {
-            if (node.id === "start" || node.id === "end" || node.type === "startEnd") {
-              return
-            }
-            setSelectedNode(node)
-            setIsPanelOpen(true)
-          }}
-        />
+        <ReactFlowProvider>
+          <WorkflowVisualizer
+            workflow={workflow}
+            workflowExecution={workflowExecution}
+            onNodeClick={(node) => {
+              if (node.id === "start" || node.id === "end" || node.type === "startEnd") {
+                return
+              }
+              setSelectedNode(node)
+              setIsPanelOpen(true)
+            }}
+          />
+        </ReactFlowProvider>
       </div>
 
       <WorkflowFormPanel
@@ -81,6 +87,7 @@ function WorkflowViewerToolContent({
         onSave={handleSave}
         onCancel={handleCancel}
         localizedObj={formLocalizedObj}
+        executionMode={executionMode}
       />
     </div>
   )
@@ -99,32 +106,27 @@ function WorkflowViewerToolContent({
  * - Real-time workflow state management
  * - Localization support for internationalization
  * - Export workflow as Conductor JSON format
+ * - Execution mode to visualize runtime workflow data with status indicators
  *
  * @component
  * @example
  * \`\`\`tsx
- * import { WorkflowViewerTool } from '@/components/workflow-visualizer/workflow-viewer-tool'
- * import { defaultWorkflowFormLocalization } from '@/lib/workflow-form-localization'
+ * // Definition mode (editable)
+ * <WorkflowViewerTool
+ *   initialWorkflow={workflowDefinition}
+ *   onSave={handleSave}
+ * />
  *
- * function MyWorkflowEditor() {
- *   const handleSave = (workflow) => {
- *     console.log('Workflow saved:', workflow)
- *     // Send to API or save locally
- *   }
- *
- *   return (
- *     <WorkflowViewerTool
- *       initialWorkflow={myWorkflowData}
- *       onSave={handleSave}
- *       formLocalizedObj={defaultWorkflowFormLocalization}
- *     />
- *   )
- * }
+ * // Execution mode (read-only with status)
+ * <WorkflowViewerTool
+ *   initialWorkflow={workflowExecution}
+ *   executionMode={true}
+ * />
  * \`\`\`
  */
-export function WorkflowViewerTool({ initialWorkflow, onSave, onCancel, formLocalizedObj }: WorkflowViewerToolProps) {
+export function WorkflowViewerTool({ initialWorkflow, executionMode = false, onSave, onCancel, formLocalizedObj }: WorkflowViewerToolProps) {
   return (
-    <WorkflowProvider initialWorkflow={initialWorkflow}>
+    <WorkflowProvider initialWorkflow={initialWorkflow} executionMode={executionMode}>
       <WorkflowViewerToolContent onSave={onSave} onCancel={onCancel} formLocalizedObj={formLocalizedObj} />
     </WorkflowProvider>
   )

@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useMemo, useCallback, useEffect, useRef } from "react"
-import { ReactFlow, Background, Controls, useNodesState, useEdgesState, MarkerType } from "@xyflow/react"
+import { ReactFlow, Background, Controls, useNodesState, useEdgesState, MarkerType, useReactFlow } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 import { SimpleTaskNode } from "./nodes/simple-task-node"
 import { SystemTaskNode } from "./nodes/system-task-node"
@@ -19,7 +19,7 @@ import { JsonJqNode } from "./nodes/json-jq-node"
 import { DynamicForkNode } from "./nodes/dynamic-fork-node"
 import { parseWorkflowToReactFlow } from "./utils/workflow-parser"
 import { useWorkflow } from "./context/workflow-context"
-import type { ConductorWorkflow } from "./types/conductor-types"
+import type { ConductorWorkflow, WorkflowExecution } from "./types/conductor-types"
 import { isDynamicForkType, isForkType } from "@/lib/workflow-utils"
 
 const nodeTypes = {
@@ -39,12 +39,14 @@ const nodeTypes = {
 
 interface WorkflowVisualizerProps {
   workflow: ConductorWorkflow
+  workflowExecution?: WorkflowExecution
   className?: string
   onNodeClick?: (node: any) => void
 }
 
-export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: WorkflowVisualizerProps) {
+export function WorkflowVisualizer({ workflow, workflowExecution, className = "", onNodeClick }: WorkflowVisualizerProps) {
   const { workflow: contextWorkflow, addTask, addTaskToBranch, addTaskToForkBranch } = useWorkflow()
+  const { fitView } = useReactFlow()
 
   const activeWorkflow = contextWorkflow || workflow
 
@@ -53,11 +55,11 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
   const lastWorkflowVersionRef = useRef<string>("")
   const countRef = useRef<number>(0)
 
-  const VERTICAL_SPACING = 200 // Moved VERTICAL_SPACING declaration here
+  const VERTICAL_SPACING = 200
 
   const { nodes: initialNodes, edges: initialEdges } = useMemo(
-    () => parseWorkflowToReactFlow(activeWorkflow),
-    [activeWorkflow],
+    () => parseWorkflowToReactFlow(activeWorkflow, workflowExecution),
+    [activeWorkflow, workflowExecution],
   )
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
@@ -100,6 +102,8 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
             )
           : undefined,
       })),
+      executionStatus: workflowExecution?.status,
+      executionUpdateTime: workflowExecution?.updateTime,
     })
 
     if (workflowHash === lastWorkflowVersionRef.current || isDraggingRef.current) {
@@ -108,7 +112,7 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
 
     lastWorkflowVersionRef.current = workflowHash
 
-    const { nodes: updatedNodes, edges: updatedEdges } = parseWorkflowToReactFlow(activeWorkflow)
+    const { nodes: updatedNodes, edges: updatedEdges } = parseWorkflowToReactFlow(activeWorkflow, workflowExecution)
 
     const mergedNodes = updatedNodes.map((updatedNode) => {
       const existingPosition = nodePositionsRef.current[updatedNode.id]
@@ -120,7 +124,15 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
 
     setNodes(mergedNodes)
     setEdges(updatedEdges)
-  }, [activeWorkflow, setNodes, setEdges])
+    
+    setTimeout(() => {
+      fitView({ 
+        padding: 0.2,
+        duration: 200,
+        nodes: mergedNodes
+      })
+    }, 50)
+  }, [activeWorkflow, workflowExecution, setNodes, setEdges, fitView])
 
   const handleNodesChange = useCallback(
     (changes: any[]) => {
@@ -141,7 +153,6 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
 
       console.log("[v0] Current nodes count:", currentNodes.length)
 
-      // Check if this is a fork branch node (but NOT a JOIN node)
       if (afterNodeId.includes("_fork_") && !afterNodeId.includes("_join")) {
         const parts = afterNodeId.split("_fork_")
         const forkTaskRef = parts[0]
@@ -615,15 +626,19 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
         strokeWidth: 2,
         stroke: "#64748b",
       },
-      pathOptions: {
-        borderRadius: 20,
-      },
       markerEnd: {
         type: MarkerType.ArrowClosed,
         width: 20,
         height: 20,
         color: "#64748b",
       },
+    }),
+    [],
+  )
+
+  const proOptions = useMemo(
+    () => ({
+      hideAttribution: true,
     }),
     [],
   )
@@ -649,6 +664,7 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
         onNodeClick={handleNodeClick}
         nodeTypes={nodeTypes}
         fitView
+        fitViewOptions={{ padding: 0.2, duration: 200 }}
         minZoom={0.1}
         maxZoom={1.5}
         defaultEdgeOptions={defaultEdgeOptions}
@@ -656,6 +672,9 @@ export function WorkflowVisualizer({ workflow, className = "", onNodeClick }: Wo
         nodesConnectable={false}
         elementsSelectable={true}
         selectNodesOnDrag={false}
+        proOptions={proOptions}
+        edgesUpdatable={false}
+        edgesReconnectable={false}
       >
         <Background color="#64748b" gap={16} size={1.5} variant="dots" />
         <Controls />

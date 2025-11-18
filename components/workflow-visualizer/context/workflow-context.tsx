@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react"
-import type { ConductorWorkflow, ConductorTask } from "../types/conductor-types"
+import type { ConductorWorkflow, ConductorTask, WorkflowExecution } from "../types/conductor-types"
 import { WorkflowConfirmationDialog } from "./workflow-confirmation-dialog"
 import { isForkType } from "@/lib/workflow-utils"
 
@@ -32,6 +32,12 @@ interface ConfirmationConfig {
 interface WorkflowContextType {
   /** Current workflow state */
   workflow: ConductorWorkflow
+
+  /** Whether the visualizer is in execution mode */
+  executionMode: boolean
+  
+  /** Original workflow execution data (only available in execution mode) */
+  workflowExecution?: WorkflowExecution
 
   /** Update a specific task by its reference name */
   updateTask: (taskReferenceName: string, updates: Partial<ConductorTask>) => void
@@ -87,11 +93,13 @@ const WorkflowContext = createContext<WorkflowContextType | undefined>(undefined
  * - Automatic JOIN task management for FORK_JOIN tasks
  * - Confirmation dialogs for destructive operations
  * - Immutable state updates
+ * - Execution mode support for visualizing runtime workflow data
  *
  * @component
  * @param {Object} props
  * @param {ReactNode} props.children - Child components that need access to workflow context
- * @param {ConductorWorkflow} props.initialWorkflow - Initial workflow definition
+ * @param {ConductorWorkflow | WorkflowExecution} props.initialWorkflow - Initial workflow definition or execution
+ * @param {boolean} [props.executionMode] - Whether to visualize as an execution (read-only with status)
  *
  * @example
  * \`\`\`tsx
@@ -103,11 +111,20 @@ const WorkflowContext = createContext<WorkflowContextType | undefined>(undefined
 export function WorkflowProvider({
   children,
   initialWorkflow,
+  executionMode = false,
 }: {
   children: ReactNode
-  initialWorkflow: ConductorWorkflow
+  initialWorkflow: ConductorWorkflow | WorkflowExecution
+  executionMode?: boolean
 }) {
-  const [workflow, setWorkflow] = useState<ConductorWorkflow>(initialWorkflow)
+  const extractedWorkflow: ConductorWorkflow = executionMode
+    ? (initialWorkflow as WorkflowExecution).workflowDefinition
+    : (initialWorkflow as ConductorWorkflow)
+
+  const [workflow, setWorkflow] = useState<ConductorWorkflow>(extractedWorkflow)
+  const [workflowExecution] = useState<WorkflowExecution | undefined>(
+    executionMode ? (initialWorkflow as WorkflowExecution) : undefined
+  )
   const [confirmationConfig, setConfirmationConfig] = useState<ConfirmationConfig | null>(null)
 
   const updateTask = useCallback((taskReferenceName: string, updates: Partial<ConductorTask>) => {
@@ -444,6 +461,8 @@ export function WorkflowProvider({
     <WorkflowContext.Provider
       value={{
         workflow,
+        executionMode,
+        workflowExecution,
         updateTask,
         updateWorkflow,
         getTask,

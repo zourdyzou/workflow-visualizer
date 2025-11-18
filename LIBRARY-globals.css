@@ -1,8 +1,12 @@
+/* All @import statements MUST come first before any other CSS rules */
+@import "@codemirror/view/dist/index.css";
+@import "@uiw/react-codemirror/dist/index.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Global CSS variables on :root for Tailwind utility classes to work everywhere */
+/* Global CSS variables on :root so Radix UI portals can access them */
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -11,7 +15,7 @@
     --card-foreground: 0 0% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
-    --primary: 199 89% 48%; /* Changed to light blue for primary color */
+    --primary: 0 0% 9%;
     --primary-foreground: 0 0% 98%;
     --secondary: 0 0% 96.1%;
     --secondary-foreground: 0 0% 9%;
@@ -21,9 +25,9 @@
     --accent-foreground: 0 0% 9%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 94%; /* Lighter border color for subtle borders */
+    --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
-    --ring: 199 89% 48%; /* Changed ring to match primary */
+    --ring: 0 0% 63.9%;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
@@ -47,8 +51,8 @@
     --card-foreground: 0 0% 98%;
     --popover: 0 0% 3.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 199 89% 48%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
     --secondary: 0 0% 14.9%;
     --secondary-foreground: 0 0% 98%;
     --muted: 0 0% 14.9%;
@@ -57,9 +61,9 @@
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 85.7% 97.3%;
-    --border: 0 0% 25%; /* Lighter border for dark mode */
+    --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
-    --ring: 199 89% 48%;
+    --ring: 0 0% 83.1%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -75,74 +79,12 @@
     --sidebar-ring: 0 0% 83.1%;
   }
 
-  /* Better form element border styling */
-  input,
-  textarea,
-  select {
-    border-color: hsl(var(--border)) !important;
-  }
-
-  input:focus,
-  textarea:focus,
-  select:focus {
-    border-color: hsl(var(--ring)) !important;
-    outline: none;
-    box-shadow: 0 0 0 1px hsl(var(--ring));
+  * {
+    border-color: hsl(var(--border));
   }
 }
 
-/* Component-level styles for form inputs and tabs */
-@layer components {
-  /* Form input border colors */
-  .border-input {
-    border-color: hsl(var(--input)) !important;
-  }
-
-  .border-border {
-    border-color: hsl(var(--border)) !important;
-  }
-
-  /* Tab styling for active state */
-  .border-primary {
-    border-color: hsl(var(--primary)) !important;
-  }
-
-  .text-primary {
-    color: hsl(var(--primary)) !important;
-  }
-
-  .border-transparent {
-    border-color: transparent !important;
-  }
-
-  .text-muted-foreground {
-    color: hsl(var(--muted-foreground)) !important;
-  }
-
-  /* CodeMirror editor styling */
-  .cm-editor {
-    border: 1px solid hsl(var(--border)) !important;
-    border-radius: calc(var(--radius) - 2px);
-    background-color: hsl(var(--background)) !important;
-  }
-
-  .cm-editor:focus-within {
-    border-color: hsl(var(--ring)) !important;
-    outline: none;
-    box-shadow: 0 0 0 1px hsl(var(--ring));
-  }
-
-  .cm-content {
-    color: hsl(var(--foreground)) !important;
-  }
-
-  .cm-gutters {
-    background-color: hsl(var(--muted)) !important;
-    border-right: 1px solid hsl(var(--border)) !important;
-  }
-}
-
-/* Scoped CSS variables to .workflow-visualizer-root for library use - overrides global when inside wrapper */
+/* Scoped variables for library use - overrides when inside wrapper */
 .workflow-visualizer-root {
   --background: 0 0% 100%;
   --foreground: 0 0% 3.9%;
@@ -150,7 +92,7 @@
   --card-foreground: 0 0% 3.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 0 0% 3.9%;
-  --primary: 199 89% 48%;
+  --primary: 0 0% 9%;
   --primary-foreground: 0 0% 98%;
   --secondary: 0 0% 96.1%;
   --secondary-foreground: 0 0% 9%;
@@ -160,29 +102,15 @@
   --accent-foreground: 0 0% 9%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 94%;
+  --border: 0 0% 89.8%;
   --input: 0 0% 89.8%;
-  --ring: 199 89% 48%;
-  --chart-1: 12 76% 61%;
-  --chart-2: 173 58% 39%;
-  --chart-3: 197 37% 24%;
-  --chart-4: 43 74% 66%;
-  --chart-5: 27 87% 67%;
+  --ring: 0 0% 63.9%;
   --radius: 0.625rem;
-  --sidebar-background: 0 0% 98%;
-  --sidebar-foreground: 0 0% 3.9%;
-  --sidebar-primary: 0 0% 9%;
-  --sidebar-primary-foreground: 0 0% 98%;
-  --sidebar-accent: 0 0% 96.1%;
-  --sidebar-accent-foreground: 0 0% 9%;
-  --sidebar-border: 0 0% 89.8%;
-  --sidebar-ring: 0 0% 63.9%;
 
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
 }
 
-/* Dark mode scoped to .workflow-visualizer-root.dark */
 .workflow-visualizer-root.dark {
   --background: 0 0% 3.9%;
   --foreground: 0 0% 98%;
@@ -190,8 +118,8 @@
   --card-foreground: 0 0% 98%;
   --popover: 0 0% 3.9%;
   --popover-foreground: 0 0% 98%;
-  --primary: 199 89% 48%;
-  --primary-foreground: 0 0% 98%;
+  --primary: 0 0% 98%;
+  --primary-foreground: 0 0% 9%;
   --secondary: 0 0% 14.9%;
   --secondary-foreground: 0 0% 98%;
   --muted: 0 0% 14.9%;
@@ -200,20 +128,7 @@
   --accent-foreground: 0 0% 98%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 85.7% 97.3%;
-  --border: 0 0% 25%;
+  --border: 0 0% 14.9%;
   --input: 0 0% 14.9%;
-  --ring: 199 89% 48%;
-  --chart-1: 220 70% 50%;
-  --chart-2: 160 60% 45%;
-  --chart-3: 30 80% 55%;
-  --chart-4: 280 65% 60%;
-  --chart-5: 340 75% 55%;
-  --sidebar-background: 0 0% 9%;
-  --sidebar-foreground: 0 0% 98%;
-  --sidebar-primary: 220 70% 50%;
-  --sidebar-primary-foreground: 0 0% 98%;
-  --sidebar-accent: 0 0% 14.9%;
-  --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-border: 0 0% 14.9%;
-  --sidebar-ring: 0 0% 83.1%;
+  --ring: 0 0% 83.1%;
 }

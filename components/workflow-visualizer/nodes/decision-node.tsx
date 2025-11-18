@@ -2,7 +2,7 @@
 import { Handle, Position } from "@xyflow/react"
 import type React from "react"
 import { memo } from "react"
-import { GitBranch, X, Plus, Minus } from "lucide-react"
+import { GitBranch, X, Plus, Minus } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { useWorkflow } from "../context/workflow-context"
 import { TaskSelectionPopover } from "../task-selection-popover"
@@ -19,7 +19,7 @@ interface DecisionNodeProps {
 }
 
 export const DecisionNode = memo(function DecisionNode({ data, id }: DecisionNodeProps) {
-  const { removeTask, showConfirmation, removeDecisionCase, addDecisionCase } = useWorkflow()
+  const { removeTask, showConfirmation, removeDecisionCase, addDecisionCase, executionMode } = useWorkflow()
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -85,15 +85,16 @@ export const DecisionNode = memo(function DecisionNode({ data, id }: DecisionNod
       <Handle type="target" position={Position.Top} className="!bg-gray-400" />
 
       <div className="relative min-w-[280px] rounded-lg border-2 border-green-500 bg-green-50 p-4 shadow-lg transition-shadow hover:shadow-xl">
-        {/* Delete button */}
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={handleDelete}
-          className="absolute -right-2 -top-2 h-6 w-6 rounded-full border-2 border-red-400 bg-white p-0 opacity-0 transition-opacity hover:bg-red-50 group-hover:opacity-100"
-        >
-          <X className="h-3 w-3 text-red-500" />
-        </Button>
+        {!executionMode && (
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={handleDelete}
+            className="absolute -right-2 -top-2 h-6 w-6 rounded-full border-2 border-red-400 bg-white p-0 opacity-0 transition-opacity hover:bg-red-50 group-hover:opacity-100"
+          >
+            <X className="h-3 w-3 text-red-500" />
+          </Button>
+        )}
 
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-1 items-start gap-3">
@@ -123,10 +124,9 @@ export const DecisionNode = memo(function DecisionNode({ data, id }: DecisionNod
               left: position,
               top: "100%",
               transform: "translateX(-50%)",
-              marginTop: "-8px", // Using negative margin to pull handles up closer to node
+              marginTop: "-8px",
             }}
           >
-            {/* Decision case handle - tiny, subtle green dot */}
             <Handle
               type="source"
               position={Position.Bottom}
@@ -134,30 +134,31 @@ export const DecisionNode = memo(function DecisionNode({ data, id }: DecisionNod
               className="!relative !left-0 !top-0 !h-1 !w-1 !translate-x-0 !translate-y-0 !rounded-full !border !border-green-600 !bg-green-500"
             />
 
-            {/* Control buttons below the handle */}
-            <div className="flex gap-1">
-              <TaskSelectionPopover nodeId={caseNodeId}>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-6 w-6 rounded-full border border-gray-300 bg-white p-0 shadow-sm transition-all hover:border-green-400 hover:bg-green-50"
-                  title={`Add task to case "${caseKey}"`}
-                >
-                  <Plus className="h-3 w-3 text-gray-600" />
-                </Button>
-              </TaskSelectionPopover>
-              {cases.length > 2 && (
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={(e) => handleRemoveCase(e, caseKey, index)}
-                  className="h-6 w-6 rounded-full border border-gray-300 bg-white p-0 shadow-sm transition-all hover:border-red-400 hover:bg-red-50"
-                  title={`Remove case "${caseKey}"`}
-                >
-                  <Minus className="h-3 w-3 text-gray-600" />
-                </Button>
-              )}
-            </div>
+            {!executionMode && (
+              <div className="flex gap-1">
+                <TaskSelectionPopover nodeId={caseNodeId}>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-6 w-6 rounded-full border border-gray-300 bg-white p-0 shadow-sm transition-all hover:border-green-400 hover:bg-green-50"
+                    title={`Add task to case "${caseKey}"`}
+                  >
+                    <Plus className="h-3 w-3 text-gray-600" />
+                  </Button>
+                </TaskSelectionPopover>
+                {cases.length > 2 && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={(e) => handleRemoveCase(e, caseKey, index)}
+                    className="h-6 w-6 rounded-full border border-gray-300 bg-white p-0 shadow-sm transition-all hover:border-red-400 hover:bg-red-50"
+                    title={`Remove case "${caseKey}"`}
+                  >
+                    <Minus className="h-3 w-3 text-gray-600" />
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         )
       })}
